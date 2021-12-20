@@ -6,6 +6,7 @@ import time
 import os
 from torchvision import transforms
 from Plotting import plot, plot_test
+from torch.nn import functional as F
 from MyDataloaders import *
 from Metrics import *
 from models import MyModelV1, FCNModels, DeepLabModels
@@ -16,21 +17,26 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 from prettytable import PrettyTable
 
-def show(torch_img, index):
+def show(torch_img, index,save):
     # if not isinstance(torch_img,list):
     #     torch_img = [torch_img]
     toPIL = transforms.ToPILImage()
     for i, img in enumerate(torch_img):
         img = toPIL(img.clone().detach().cpu())#.numpy().transpose((1, 2, 0))
         plt.imshow(img)
-        plt.savefig('./generatedImages/'+str(index+i)+'generated.jpg')
-        plt.clf()
+        if save:
+            plt.savefig('./generatedImages/'+str(index+i)+'generated.jpg')
+            plt.clf()
+        else:
+            plt.show()
+            plt.clf()
         # print(img)
 
 def image_gradient(images):
     a=np.array([[1, 0, -1], [2, 0, -2], [1, 0, -1]])
     conv1 = nn.Conv2d(1, 1, kernel_size=3, stride=1, padding=1, bias=False)
     conv1.weight = nn.Parameter(torch.from_numpy(a).float().unsqueeze(0).unsqueeze(0),requires_grad=False)
+    print(conv1.weight)
     conv1.to(device)
     #-----------------------------------------------------------
     b = np.array([[1, 2, 1], [0, 0, 0], [-1, -2, -1]])
@@ -48,10 +54,14 @@ def image_gradient(images):
     G = torch.sqrt(torch.pow(G_x, 2) + torch.pow(G_y, 2))
     return torch.sum(G)/(images_shape[-1]*images_shape[-2])
 
-def denoising_loss(created_images, original_images, lr=1):
+def denoising_loss(created_images, original_images):
     alpha = torch.sum(torch.pow(created_images-original_images,2))/(original_images.shape[-1]*original_images.shape[-2])
-    beta = lr * image_gradient(created_images)
-    total = alpha + beta
+    beta = 0.1 * image_gradient(created_images)
+    if alpha>1000 or beta> 100:
+        print((original_images.shape[-1]*original_images.shape[-2]))
+
+    total = beta #alpha + beta
+    print(alpha,beta)
     return total
 
 def training_loop(n_epochs, optimizer, lr_scheduler, model, loss_fn, train_loader,device):
@@ -76,15 +86,18 @@ def training_loop(n_epochs, optimizer, lr_scheduler, model, loss_fn, train_loade
             y = y.to(device).float()
             ypred = model(X)
 
+            # ypred = F.softmax(ypred, dim=0)
+            ypred = ypred+X
             optimizer.zero_grad()
             # show(X)
             # image_gradient(X)
             loss = denoising_loss(ypred,X)
+
             tr_loss_arr.append(loss.clone().detach().cpu().numpy())
             loss.backward()
             optimizer.step()
             if epoch%10 == 0 and flag:
-                show(ypred,index = total_train_images)
+                show(ypred,index = total_train_images,save=True)
             #************ store sub-batch results ********************
             # tr_loss_arr.append(loss.item()*batch_size)
             # ioutrain += IOU_class01(y, ypred) # appending list of images' IOU
@@ -102,105 +115,7 @@ def training_loop(n_epochs, optimizer, lr_scheduler, model, loss_fn, train_loade
                               })
         #average epoch results for training
         temp_epoch_loss = np.average(tr_loss_arr)/total_train_images
-    #     temp_epoch_iou = np.sum(ioutrain)/total_train_images # to make sure that is equal to np.mean(iotrain)
-    #     temp_epoch_dice = np.mean(dice_train)
-    #     temp_epoch_pixelAcc = np.mean(pixelacctrain)
-    #     # print("Train: Epoch{} results:loss:{:.4f} iou:{:.4f} pixelAcc:{:.4f}".format(epoch+1,temp_epoch_loss,temp_epoch_iou,temp_epoch_pixelAcc))
-    #     valtraintest_loss["train"].append(temp_epoch_loss)
-    #     valtraintest_IOU["train"].append(temp_epoch_iou)
-    #     valtraintest_Dice["train"].append(temp_epoch_dice)
-    #     valtraintest_pixelAcc["train"].append(temp_epoch_pixelAcc)
-    #
-    #     #************************************** Validation starts here ************************************
-    #     # temp_epoch_loss = 0
-    #     # temp_epoch_iou = 0
-    #     # temp_epoch_pixelAcc = 0
-    #     total_val_images = 0
-    #     with torch.no_grad():
-    #
-    #         val_loss = 0
-    #         pbar = tqdm(val_loader, total=len(val_loader))
-    #         for X, y in pbar:
-    #             torch.cuda.empty_cache()
-    #             X = X.to(device).float()
-    #             y = y.to(device).float()
-    #             batch_size = len(X)
-    #             total_val_images += batch_size
-    #             model.eval()
-    #             ypred = model(X)
-    #             # ************ store sub-batch results ********************
-    #             val_loss = loss_fn(ypred,y)*batch_size
-    #             val_loss_arr.append(val_loss.item())
-    #             pixelaccval += pixelAcc(y,ypred)
-    #             iouval += IOU_class01(y, ypred)
-    #             dice_val += dic(y, ypred)
-    #
-    #             # temp_epoch_loss += val_loss.item()
-    #             # temp_epoch_iou += IOU_class01(y, ypred)
-    #             # temp_epoch_pixelAcc += pixelAcc(y, ypred)
-    #             # ************ finish storing sub-batch results ********************
-    #
-    #             pbar.set_postfix({'Epoch': epoch + 1 + prevEpoch,
-    #                               'Validation Loss': np.sum(val_loss_arr)/total_val_images,
-    #                               'Mean IOU': np.mean(iouval),
-    #                               'Mean Dice': np.mean(dice_val),
-    #                               'Pixel Acc': np.mean(pixelaccval)
-    #                               })
-    #     # average epoch results for training
-    #     temp_epoch_loss = np.sum(val_loss_arr)/total_val_images
-    #     temp_epoch_iou = np.mean(iouval)
-    #     temp_epoch_dice = np.mean(dice_val)
-    #     temp_epoch_pixelAcc = np.mean(pixelaccval)
-    #     # print("Val: Epoch{} results:loss:{:.4f} iou:{:.4f} pixelAcc:{:.4f}".format(epoch + 1, temp_epoch_loss,
-    #     #                                                                  temp_epoch_iou, temp_epoch_pixelAcc))
-    #
-    #     #store the model if higher iou achieved
-    #     if temp_epoch_iou > best_val_iou:#best recordered val iou
-    #         best_val_iou = temp_epoch_iou
-    #         print("Best Val so far\n")
-    #
-    #         #run the model on test data
-    #         if len(test_loader) != 0:# check if the test set is avialable otherwise don't run a test set
-    #             test_epoch_loss,test_epoch_iou, test_epoch_dice, test_epoch_pixelAcc=applytoTest(model, epoch,loss_fn, prevEpoch, test_loader,device)
-    #         else: test_epoch_loss,test_epoch_iou, test_epoch_dice, test_epoch_pixelAcc= (0,0,0,0)
-    #
-    #         valtraintest_loss["test"].append(test_epoch_loss)
-    #         valtraintest_IOU["test"].append(test_epoch_iou)
-    #         valtraintest_pixelAcc["test"].append(test_epoch_pixelAcc)
-    #
-    #
-    #         checkpoint = {
-    #             'epoch': epoch + 1,
-    #             'description': "add your description",
-    #             'state_dict': model.state_dict(),
-    #             'optimizer_state_dict': optimizer.state_dict(),
-    #             'Training Loss': np.sum(tr_loss_arr)/total_train_images,
-    #             'Validation Loss': np.sum(val_loss_arr)/total_val_images,
-    #             'MeanIOU train': ioutrain,
-    #             'PixelAcc train': pixelacctrain,
-    #             'MeanIOU test': ioutest,
-    #             'PixelAcc test': pixelacctest,
-    #             'MeanIOU val': iouval,
-    #             'PixelAcc val': pixelaccval
-    #         }
-    #         torch.save(checkpoint,
-    #                    colab_dir+'/checkpoints/highest_IOU_'+model_name+'.pt')
-    #         print("finished saving checkpoint")
-    #
-    #     valtraintest_loss["val"].append(temp_epoch_loss)
-    #     valtraintest_IOU["val"].append(temp_epoch_iou)
-    #     valtraintest_Dice["val"].append(temp_epoch_dice)
-    #     valtraintest_pixelAcc["val"].append(temp_epoch_pixelAcc)
-    #
-    #     #lr_scheduler.step()
-    # # batch_based_result = (tr_loss_arr, val_loss_arr, meanioutrain, pixelacctrain, meanioutest, pixelacctest)
-    # epoch_based_result = (valtraintest_loss["train"], valtraintest_loss["val"],
-    #                       valtraintest_pixelAcc["val"], valtraintest_pixelAcc["val"],
-    #                       valtraintest_IOU["train"], valtraintest_IOU["val"],
-    #                       valtraintest_Dice["train"], valtraintest_Dice["val"] )
-    #
-    # test_results = (valtraintest_loss["test"],valtraintest_IOU["test"],valtraintest_Dice['test'], valtraintest_pixelAcc["test"])
-    # # return  batch_based_result, epoch_based_result,test_results
+
     return  epoch_based_result,test_results
 
 
@@ -215,7 +130,7 @@ if __name__=='__main__':
 
     root_dir = r"E:\Databases\dummyDataset\train"
 
-    epochs= 2
+    epochs= 100
     batchSize = 2
 
 
@@ -224,7 +139,7 @@ if __name__=='__main__':
     # load_to_RAM = True
 
     resize_factor = 10
-    target_img_size = (500, 570)
+    target_img_size = (int(500/1.5), int(570/1.5))
     train_val_ratio = 0.8
 
     print("resize_factor={} and image size={}".format(resize_factor, target_img_size))
@@ -263,7 +178,7 @@ if __name__=='__main__':
     print("Training will be on:",device)
 
     model = model.to(device)
-    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+    optimizer = optim.SGD(model.parameters(), lr=learning_rate)
     # loss_fn = nn.BCELoss()
     # weight = torch.tensor([0.2, 0.8]).to(device)
     # loss_fn = nn.CrossEntropyLoss(weight) this is the loss of the accepted paper
