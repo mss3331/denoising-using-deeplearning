@@ -9,7 +9,7 @@ from Plotting import plot, plot_test
 from torch.nn import functional as F
 from MyDataloaders import *
 from Metrics import *
-from models import MyModelV1, FCNModels, DeepLabModels
+from models import MyModelV1, FCNModels, DeepLabModels, unet
 from torch import nn
 from torchvision import datasets
 from torch.utils.data import ConcatDataset
@@ -86,12 +86,11 @@ def training_loop(n_epochs, optimizer, lr_scheduler, model, loss_fn, train_loade
             y = y.to(device).float()
             ypred = model(X)
 
-            # ypred = F.softmax(ypred, dim=0)
-            ypred = ypred+X
+
             optimizer.zero_grad()
             # show(X)
             # image_gradient(X)
-            loss = denoising_loss(ypred,X)
+            loss = loss_fn(ypred,X)
 
             tr_loss_arr.append(loss.clone().detach().cpu().numpy())
             loss.backward()
@@ -124,12 +123,16 @@ if __name__=='__main__':
 
 
 
-    learning_rate = 0.1
+    learning_rate = 0.01
     input_channels = 3
     number_classes = 3 # output channels should be one mask for binary class
 
+    run_in_colab = True
     root_dir = r"E:\Databases\dummyDataset\train"
-
+    colab_dir = "."
+    if run_in_colab:
+        root_dir = r"/content/trainData_EndoCV2021_5_Feb2021"
+        colab_dir = "/content/GIANA21/"
     epochs= 100
     batchSize = 2
 
@@ -138,8 +141,8 @@ if __name__=='__main__':
     #************** modify for full experiment *************
     # load_to_RAM = True
 
-    resize_factor = 10
-    target_img_size = (int(500/1.5), int(570/1.5))
+    resize_factor = None
+    target_img_size = (255,255)
     train_val_ratio = 0.8
 
     print("resize_factor={} and image size={}".format(resize_factor, target_img_size))
@@ -152,8 +155,17 @@ if __name__=='__main__':
     ########################### Deeplab versions ###################################
     # [Deeplap_resnet50, Deeplap_resnet101, FCN_resnet50, FCN_resnet101, Deeplabv3_GRU_ASPP_resnet50,
     # Deeplabv3_GRU_CombineChannels_resnet50, Deeplabv3_GRU_ASPP_CombineChannels_resnet50, Deeplabv3_LSTM_resnet50]
+    ########################### unet model #####################################################
+    # [unit.UNET]
     model_name = "Deeplap_resnet50"
-    model = DeepLabModels.Deeplabv3(num_classes=number_classes, backbone=model_name)
+    model = unet.UNet(in_channels=input_channels,
+                 out_channels=number_classes,
+                 n_blocks=4,
+                 start_filters=32,
+                 activation='relu',
+                 normalization='batch',
+                 conv_mode='same',
+                 dim=2)
 
     image_transform = transforms.Compose([
             transforms.Resize(target_img_size),  # Resizing the image as the VGG only take 224 x 244 as input size
@@ -178,11 +190,11 @@ if __name__=='__main__':
     print("Training will be on:",device)
 
     model = model.to(device)
-    optimizer = optim.SGD(model.parameters(), lr=learning_rate)
+    optimizer = optim.SGD(model.parameters(), lr=learning_rate,momentum=0.9)
     # loss_fn = nn.BCELoss()
     # weight = torch.tensor([0.2, 0.8]).to(device)
     # loss_fn = nn.CrossEntropyLoss(weight) this is the loss of the accepted paper
-    loss_fn = nn.BCEWithLogitsLoss() # this is the handseg loss
+    loss_fn = nn.MSELoss() # this is the handseg loss
     lr_scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer=optimizer, gamma=0.8)
     lr_scheduler = None
     #call the training loop,
