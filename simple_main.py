@@ -23,15 +23,16 @@ def show(torch_img, index, save):
     #     torch_img = [torch_img]
     toPIL = transforms.ToPILImage()
     for i, img in enumerate(torch_img):
-        if (i == 10): return
+        if (i == 5): return
         img = toPIL(img.clone().detach().cpu())  # .numpy().transpose((1, 2, 0))
-        plt.imshow(img)
-        if save:
-            plt.savefig('./generatedImages/' + str(index) + '_' + str(i) + 'generated.jpg')
-            plt.clf()
-        else:
-            plt.show()
-            plt.clf()
+        img.save('./generatedImages/' + str(index) + '_' + str(i) + 'generated.png')
+        # plt.imshow(img)
+        # if save:
+        #     plt.savefig('./generatedImages/'+str(index)+'_'+str(i)+'generated.jpg')
+        #     plt.clf()
+        # else:
+        #     plt.show()
+        #     plt.clf()
         # print(img)
 
 
@@ -71,6 +72,7 @@ def denoising_loss(created_images, original_images):
 
 
 def training_loop(n_epochs, optimizer, lr_scheduler, model, loss_fn, train_loader, device):
+    scaler = 1
     for epoch in range(0, n_epochs + 1):
         flag = True
         total_train_images = 0
@@ -91,7 +93,10 @@ def training_loop(n_epochs, optimizer, lr_scheduler, model, loss_fn, train_loade
             optimizer.zero_grad()
             # show(X)
             # image_gradient(X)
-            loss = loss_fn(ypred, X)
+            loss = loss_fn(ypred, X) * scaler
+            if (loss.item() <= 0.01):
+                scaler += 10
+                print("scaler is used to increase the loss=", scaler)
 
             tr_loss_arr.append(loss.clone().detach().cpu().numpy())
             loss.backward()
@@ -130,7 +135,7 @@ if __name__ == '__main__':
     if run_in_colab:
         root_dir = "/content/cvc_samples_denosing/"
         colab_dir = "/content/denoising-using-deeplearning/"
-    epochs = 100
+    epochs = 500
     batchSize = 30
 
     print("epochs {} batch size {}".format(epochs, batchSize))
