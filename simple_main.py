@@ -15,6 +15,8 @@ from torchvision import datasets
 from torch.utils.data import ConcatDataset
 from torch.utils.data import DataLoader
 from tqdm import tqdm
+import wandb
+wandb.login(key="38818beaffe50c5403d3f87b288d36d1b38372f8")
 from prettytable import PrettyTable
 
 
@@ -102,6 +104,7 @@ def training_loop(n_epochs, optimizer, lr_scheduler, model, loss_fn, train_loade
             loss.backward()
             optimizer.step()
             show(ypred, index=100 + epoch, save=True)
+
             # ************ store sub-batch results ********************
             # tr_loss_arr.append(loss.item()*batch_size)
             # ioutrain += IOU_class01(y, ypred) # appending list of images' IOU
@@ -119,8 +122,11 @@ def training_loop(n_epochs, optimizer, lr_scheduler, model, loss_fn, train_loade
                               })
         # average epoch results for training
         temp_epoch_loss = np.mean(tr_loss_arr)
+        wandb.log({"loss": np.mean(tr_loss_arr), "epoch": epoch},
+                  step=epoch)
 
-    return epoch_based_result, test_results
+
+
 
 
 if __name__ == '__main__':
@@ -133,12 +139,12 @@ if __name__ == '__main__':
     root_dir = r"E:\Databases\dummyDataset\train"
     colab_dir = "."
     if run_in_colab:
-        root_dir = "/content/cvc_samples_denosing/"
-        colab_dir = "/content/denoising-using-deeplearning/"
-    epochs = 500
-    batchSize = 30
+        root_dir = "/content/cvc_samples_denosing"
+        colab_dir = "/content/denoising-using-deeplearning"
+    num_epochs = 500
+    batch_size = 30
 
-    print("epochs {} batch size {}".format(epochs, batchSize))
+    print("epochs {} batch size {}".format(num_epochs, batch_size))
     # ************** modify for full experiment *************
     # load_to_RAM = True
 
@@ -171,7 +177,7 @@ if __name__ == '__main__':
         transforms.Resize(target_img_size),  # Resizing the image as the VGG only take 224 x 244 as input size
         transforms.ToTensor()])
     train_dataset = datasets.ImageFolder(root_dir, transform=image_transform)
-    trainLoader = DataLoader(train_dataset, batch_size=batchSize)
+    trainLoader = DataLoader(train_dataset, batch_size=batch_size)
     # print(trainDataset[1])
     # exit(0)
     # trainLoader = DataLoader(trainDataset, batch_size = batchSize, shuffle=False, drop_last=False,worker_init_fn=seed_worker)
@@ -199,12 +205,27 @@ if __name__ == '__main__':
     # call the training loop,
     # make sure to pass correct checkpoint path, or none if starting with the training
     start = time.time()
-
-    all_results = training_loop(epochs, optimizer, lr_scheduler, model, loss_fn,
+    wandbproject_name = "denoising"
+    wandb.init(
+        project=wandbproject_name,
+        entity="mss3331",
+        name=Experimentname,
+        # Track hyperparameters and run metadata
+        config={
+            "learning_rate": learning_rate,
+            "optimizer":"SGD",
+            "architecture": model_name,
+            "batch_size": batch_size,
+            "num_epochs": num_epochs,
+            "dataset": root_dir.split("/")[-1], })
+    training_loop(num_epochs, optimizer, lr_scheduler, model, loss_fn,
                                 trainLoader,
                                 device)
-    # batch_based_result, epoch_based_result, test_results = all_results
-    epoch_based_result, test_results = all_results
+    wandb.save(colab_dir + '/*.py')
+    wandb.save(colab_dir + '/results/*')
+    wandb.save(colab_dir + '/models/*')
+    wandb.finish()
+
     total_time = time.time() - start
     print('-' * 50, '\nThe entire experiments completed in {:.0f}h {:.0f}m'.format(total_time // 60 ** 2,
                                                                                    (total_time % 60 ** 2) // 60))
