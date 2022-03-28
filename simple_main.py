@@ -110,10 +110,10 @@ def training_loop(n_epochs, optimizer, lr_scheduler, model, loss_fn, train_loade
 
             # update the progress bar
             pbar.set_postfix({'Epoch': epoch + 1,
-                              'Training Loss': np.average(tr_loss_arr) / total_train_images,
+                              'Training Loss': np.mean(tr_loss_arr),
                               })
         # average epoch results for training
-        temp_epoch_loss = np.average(tr_loss_arr) / total_train_images
+        temp_epoch_loss = np.mean(tr_loss_arr)
 
     return epoch_based_result, test_results
 
@@ -138,7 +138,7 @@ if __name__ == '__main__':
     # load_to_RAM = True
 
     resize_factor = None
-    target_img_size = (255, 255)
+    target_img_size = (288, 384)
     train_val_ratio = 0.5
 
     print("resize_factor={} and image size={}".format(resize_factor, target_img_size))
