@@ -4,29 +4,35 @@ import pandas as pd
 import random
 import time
 import os
+import numpy as np
 from torchvision import transforms
 from Plotting import plot, plot_test
 from torch.nn import functional as F
 from MyDataloaders import *
 from Metrics import *
 from models import MyModelV1, FCNModels, DeepLabModels, unet
+import torch
 from torch import nn
 from torchvision import datasets
 from torch.utils.data import ConcatDataset
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 import wandb
+
 wandb.login(key="38818beaffe50c5403d3f87b288d36d1b38372f8")
 from prettytable import PrettyTable
 
 
-def show(torch_img, index, save):
+def show(torch_img, original_imgs, index, save):
     # if not isinstance(torch_img,list):
     #     torch_img = [torch_img]
     toPIL = transforms.ToPILImage()
     for i, img in enumerate(torch_img):
         if (i == 5): return
-        img = toPIL(img.clone().detach().cpu())  # .numpy().transpose((1, 2, 0))
+        generated_img = img.clone().detach().cpu()
+        original_img = original_imgs[i].clone().detach().cpu()
+        img = torch.cat((original_img, generated_img), 2)
+        img = toPIL(img)  # .numpy().transpose((1, 2, 0))
         img.save('./generatedImages/' + str(index) + '_' + str(i) + 'generated.png')
         # plt.imshow(img)
         # if save:
@@ -41,13 +47,13 @@ def show(torch_img, index, save):
 def image_gradient(images):
     with torch.no_grad():
         a = np.array([[1, 0, -1], [2, 0, -2], [1, 0, -1]])
-        conv1 = nn.Conv2d(1, 1, kernel_size=3, stride=1, padding=1, bias=False,ker=False)
+        conv1 = nn.Conv2d(1, 1, kernel_size=3, stride=1, padding=1, bias=False)
         conv1.weight = nn.Parameter(torch.from_numpy(a).float().unsqueeze(0).unsqueeze(0), requires_grad=False)
-        print(conv1.weight)
+        # print(conv1.weight)
         conv1.to(device)
         # -----------------------------------------------------------
         b = np.array([[1, 2, 1], [0, 0, 0], [-1, -2, -1]])
-        conv2 = nn.Conv2d(1, 1, kernel_size=3, stride=1, padding=1, bias=False,requires_grad=False)
+        conv2 = nn.Conv2d(1, 1, kernel_size=3, stride=1, padding=1, bias=False)
         conv2.weight = nn.Parameter(torch.from_numpy(b).float().unsqueeze(0).unsqueeze(0), requires_grad=False)
         conv2.to(device)
         # -----------------------------------------
@@ -59,13 +65,13 @@ def image_gradient(images):
         G_x = conv1(images)
         G_y = conv2(images)
         G = torch.sqrt(torch.pow(G_x, 2) + torch.pow(G_y, 2))
-        grad_loss=torch.sum(G) / (images_shape[0] * images_shape[1]*images_shape[2] * images_shape[3])
+        grad_loss = torch.sum(G) / (images_shape[0] * images_shape[1] * images_shape[2] * images_shape[3])
     return grad_loss
 
 
 def denoising_loss(created_images, original_images):
     alpha = torch.sum(torch.pow(created_images - original_images, 2)) / (
-                original_images.shape[-1] * original_images.shape[-2])
+            original_images.shape[-1] * original_images.shape[-2])
     beta = 0.1 * image_gradient(created_images)
     if alpha > 1000 or beta > 100:
         print((original_images.shape[-1] * original_images.shape[-2]))
@@ -81,7 +87,9 @@ def training_loop(n_epochs, optimizer, lr_scheduler, model, loss_fn, train_loade
         flag = True
         total_train_images = 0
         tr_loss_arr = []
-
+        tr_loss_l2 = []
+        tr_loss_grad = []
+        original_images_grad = []
         pbar = tqdm(train_loader, total=len(train_loader))
 
         for X, y in pbar:
@@ -97,15 +105,22 @@ def training_loop(n_epochs, optimizer, lr_scheduler, model, loss_fn, train_loade
             optimizer.zero_grad()
             # show(X)
             # image_gradient(X)
-            loss = loss_fn(ypred, X) +  image_gradient(ypred)
+            loss_l2 = loss_fn(ypred, X)
+            loss_grad = image_gradient(ypred)
+
+            loss = loss_l2 + loss_grad
+
             # if (loss.item() <= 0.01):
             #     scaler += 10
             #     print("scaler is used to increase the loss=", scaler)
 
             tr_loss_arr.append(loss.clone().detach().cpu().numpy())
+            tr_loss_l2.append(loss_l2.clone().detach().cpu().numpy())
+            tr_loss_grad.append(loss_grad.clone().detach().cpu().numpy())
+            original_images_grad.append(image_gradient(X).clone().detach().cpu().numpy())
             loss.backward()
             optimizer.step()
-            show(ypred, index=100 + epoch, save=True)
+            show(ypred, X, index=100 + epoch, save=True)
 
             # ************ store sub-batch results ********************
             # tr_loss_arr.append(loss.item()*batch_size)
@@ -121,19 +136,21 @@ def training_loop(n_epochs, optimizer, lr_scheduler, model, loss_fn, train_loade
             # update the progress bar
             pbar.set_postfix({'Epoch': epoch + 1,
                               'Training Loss': np.mean(tr_loss_arr),
+                              'L2': np.mean(tr_loss_l2),
+                              'grad': np.mean(tr_loss_grad),
+                              'original_images_grad': np.mean(original_images_grad)
                               })
         # average epoch results for training
         temp_epoch_loss = np.mean(tr_loss_arr)
-        wandb.log({"loss": np.mean(tr_loss_arr), "epoch": epoch},
+        wandb.log({"loss": np.mean(tr_loss_arr),
+                   "L2": np.mean(tr_loss_l2), "grad": np.mean(tr_loss_grad),
+                   'original_images_grad': np.mean(original_images_grad), "epoch": epoch},
                   step=epoch)
-
-
-
 
 
 if __name__ == '__main__':
 
-    learning_rate = 0.01
+    learning_rate = 0.001
     input_channels = 3
     number_classes = 3  # output channels should be one mask for binary class
 
@@ -143,7 +160,7 @@ if __name__ == '__main__':
     if run_in_colab:
         root_dir = "/content/cvc_samples_denosing"
         colab_dir = "/content/denoising-using-deeplearning"
-    num_epochs = 500
+    num_epochs = 300
     batch_size = 30
 
     print("epochs {} batch size {}".format(num_epochs, batch_size))
@@ -197,7 +214,7 @@ if __name__ == '__main__':
     print("Training will be on:", device)
 
     model = model.to(device)
-    optimizer = optim.SGD(model.parameters(), lr=learning_rate, momentum=0.9)
+    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
     # loss_fn = nn.BCELoss()
     # weight = torch.tensor([0.2, 0.8]).to(device)
     # loss_fn = nn.CrossEntropyLoss(weight) this is the loss of the accepted paper
@@ -211,18 +228,18 @@ if __name__ == '__main__':
     wandb.init(
         project=wandbproject_name,
         entity="mss3331",
-        name=Experimentname,
+        name="Denoising_Exp1_Unet_Adam_30Images",
         # Track hyperparameters and run metadata
         config={
             "learning_rate": learning_rate,
-            "optimizer":"SGD",
+            "optimizer": "Adam",
             "architecture": model_name,
             "batch_size": batch_size,
             "num_epochs": num_epochs,
             "dataset": root_dir.split("/")[-1], })
     training_loop(num_epochs, optimizer, lr_scheduler, model, loss_fn,
-                                trainLoader,
-                                device)
+                  trainLoader,
+                  device)
     wandb.save(colab_dir + '/*.py')
     wandb.save(colab_dir + '/results/*')
     wandb.save(colab_dir + '/models/*')
