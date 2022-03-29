@@ -105,8 +105,8 @@ def training_loop(n_epochs, optimizer, lr_scheduler, model, loss_fn, train_loade
             optimizer.zero_grad()
             # show(X)
             # image_gradient(X)
-            loss_l2 = loss_fn(ypred, X)
-            loss_grad = image_gradient(ypred)
+            loss_l2 = loss_fn(ypred, X)*lamda["l2"]
+            loss_grad = image_gradient(ypred)*lamda["grad"]
 
             loss = loss_l2 + loss_grad
 
@@ -162,7 +162,7 @@ if __name__ == '__main__':
         colab_dir = "/content/denoising-using-deeplearning"
     num_epochs = 300
     batch_size = 30
-
+    lamda = {"l2":0.5,"grad":1} #L2 and Grad
     print("epochs {} batch size {}".format(num_epochs, batch_size))
     # ************** modify for full experiment *************
     # load_to_RAM = True
@@ -235,6 +235,7 @@ if __name__ == '__main__':
             "optimizer": "Adam",
             "architecture": model_name,
             "batch_size": batch_size,
+            "lamda":lamda,
             "num_epochs": num_epochs,
             "dataset": root_dir.split("/")[-1], })
     training_loop(num_epochs, optimizer, lr_scheduler, model, loss_fn,
