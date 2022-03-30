@@ -45,27 +45,27 @@ def show(torch_img, original_imgs, index, save):
 
 
 def image_gradient(images):
-    with torch.no_grad():
-        a = np.array([[1, 0, -1], [2, 0, -2], [1, 0, -1]])
-        conv1 = nn.Conv2d(1, 1, kernel_size=3, stride=1, padding=1, bias=False)
-        conv1.weight = nn.Parameter(torch.from_numpy(a).float().unsqueeze(0).unsqueeze(0), requires_grad=False)
-        # print(conv1.weight)
-        conv1.to(device)
-        # -----------------------------------------------------------
-        b = np.array([[1, 2, 1], [0, 0, 0], [-1, -2, -1]])
-        conv2 = nn.Conv2d(1, 1, kernel_size=3, stride=1, padding=1, bias=False)
-        conv2.weight = nn.Parameter(torch.from_numpy(b).float().unsqueeze(0).unsqueeze(0), requires_grad=False)
-        conv2.to(device)
-        # -----------------------------------------
-        # images.shape = [batch, C, H, W]
-        images_shape = images.shape
-        # images.reshape = [batch*C, 1, H, W]
-        images = images.view(-1, 1, *images_shape[-2:])
 
-        G_x = conv1(images)
-        G_y = conv2(images)
-        G = torch.sqrt(torch.pow(G_x, 2) + torch.pow(G_y, 2))
-        grad_loss = torch.sum(G) / (images_shape[0] * images_shape[1] * images_shape[2] * images_shape[3])
+    a = np.array([[1, 0, -1], [2, 0, -2], [1, 0, -1]])
+    conv1 = nn.Conv2d(1, 1, kernel_size=3, stride=1, padding=1, bias=False)
+    conv1.weight = nn.Parameter(torch.from_numpy(a).float().unsqueeze(0).unsqueeze(0), requires_grad=False)
+    # print(conv1.weight)
+    conv1.to(device)
+    # -----------------------------------------------------------
+    b = np.array([[1, 2, 1], [0, 0, 0], [-1, -2, -1]])
+    conv2 = nn.Conv2d(1, 1, kernel_size=3, stride=1, padding=1, bias=False)
+    conv2.weight = nn.Parameter(torch.from_numpy(b).float().unsqueeze(0).unsqueeze(0), requires_grad=False)
+    conv2.to(device)
+    # -----------------------------------------
+    # images.shape = [batch, C, H, W]
+    images_shape = images.shape
+    # images.reshape = [batch*C, 1, H, W]
+    images = images.view(-1, 1, *images_shape[-2:])
+
+    G_x = conv1(images)
+    G_y = conv2(images)
+    G = torch.sqrt(torch.pow(G_x, 2) + torch.pow(G_y, 2)+0.000000000000001)
+    grad_loss = torch.sum(G) / (images_shape[0] * images_shape[1] * images_shape[2] * images_shape[3])
     return grad_loss
 
 
@@ -150,7 +150,7 @@ def training_loop(n_epochs, optimizer, lr_scheduler, model, loss_fn, train_loade
 
 if __name__ == '__main__':
 
-    learning_rate = 0.001
+    learning_rate = 0.01
     input_channels = 3
     number_classes = 3  # output channels should be one mask for binary class
 
@@ -162,7 +162,7 @@ if __name__ == '__main__':
         colab_dir = "/content/denoising-using-deeplearning"
     num_epochs = 300
     batch_size = 30
-    lamda = {"l2":0.5,"grad":1} #L2 and Grad
+    lamda = {"l2":1,"grad":1} #L2 and Grad
     print("epochs {} batch size {}".format(num_epochs, batch_size))
     # ************** modify for full experiment *************
     # load_to_RAM = True
