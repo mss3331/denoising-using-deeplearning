@@ -165,9 +165,9 @@ def training_loop(n_epochs, optimizer, lr_scheduler, model, loss_fn, data_loader
                 print('saving a checkpoint')
 
 
-            wandb.log({phase+"_loss": np.mean(loss),
-                       phase+"_L2": np.mean(loss_l2), phase+"_grad": np.mean(loss_grad),
-                       phase+'_original_images_grad': np.mean(original_images_grad), phase+"_epoch": epoch},
+            wandb.log({phase+"_loss": np.mean(loss_batches),
+                       phase+"_L2": np.mean(loss_l2_batches), phase+"_grad": np.mean(loss_grad_batches),
+                       phase+'_original_images_grad': np.mean(original_images_grad_batches), phase+"_epoch": epoch},
                       step=epoch)
 
 
@@ -258,7 +258,7 @@ if __name__ == '__main__':
     wandb.init(
         project=wandbproject_name,
         entity="mss3331",
-        name="Denoising_Exp1_Unet_Adam_30Images",
+        name="Denoising_testingTrainVal",
         # Track hyperparameters and run metadata
         config={
             "learning_rate": learning_rate,
