@@ -20,7 +20,7 @@ def getDataloadersDic(dataset_info,dataloder_info):
     return dataloader_dic
 
 class SegDataset(Dataset):
-    def __init__(self, parentDir, dataset_name, imageDir, maskDir, targetSize, augmentation=None, load_to_RAM= False):
+    def __init__(self, parentDir, dataset_name, imageDir, maskDir, targetSize, augmentation=None, load_to_RAM= True):
         self.imageList = sorted(glob.glob("/".join((parentDir, dataset_name, imageDir,'/*'))), key = deleteTail)
         # self.imageList.sort()
         self.maskList = sorted(glob.glob("/".join((parentDir, dataset_name, maskDir,'/*'))), key = deleteTail)
@@ -46,7 +46,9 @@ class SegDataset(Dataset):
     def __getitem__(self, index):
         if self.load_to_RAM:#if images are loaded to the RAM copy them, otherwise, read them
             x = self.tensor_images[index]
-            y = self.tensor_masks[index]
+            y_dic = self.tensor_masks[index]
+            y = y_dic['seg_target']
+            intermediate = y_dic['seg_intermediate']
         else:
             x=self.get_tensor_image(self.imageList[index])
             y_dic = self.get_tensor_mask(self.maskList[index])
