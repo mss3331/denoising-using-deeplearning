@@ -136,7 +136,9 @@ def training_loop(n_epochs, optimizer, lr_scheduler, model, loss_fn, data_loader
                     if phase=='train':
                         loss.backward()
                         optimizer.step()
-                show(ypred, X,phase, index=100 + epoch, save=True)
+                if flag:
+                    show(ypred, X,phase, index=100 + epoch, save=True)
+                    flag=False
 
                 # ************ store sub-batch results ********************
                 # loss.append(loss.item()*batch_size)
@@ -188,7 +190,7 @@ if __name__ == '__main__':
         colab_dir = "/content/denoising-using-deeplearning"
     num_epochs = 300
     batch_size = 20
-    shuffle = True
+    shuffle = False
     lamda = {"l2":1,"grad":1} #L2 and Grad
     print("epochs {} batch size {}".format(num_epochs, batch_size))
     # ************** modify for full experiment *************
