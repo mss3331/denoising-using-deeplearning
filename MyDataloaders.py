@@ -26,11 +26,14 @@ class SegDataset(Dataset):
                 mismatch += 1
                 # print('img={} mask={}'.format(img_name,mask_name))
         print('Number of mismatch for Data{} is {}'.format(childDir, mismatch))
+        assert(mismatch==0)
+        #At this stage we are sure that the mask corresponds to its mask
         self.targetSize = targetSize
         self.tensor_images = []
         self.tensor_masks = []
         self.load_to_RAM = load_to_RAM
         self.augmentation = augmentation
+
         if self.load_to_RAM:# load all data to RAM for faster fetching
             print("Loading dataset to RAM...")
             self.tensor_images = [self.get_tensor_image(image_path) for image_path in self.imageList]
