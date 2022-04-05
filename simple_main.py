@@ -12,6 +12,7 @@ from MyDataloaders import *
 from Metrics import *
 from models import MyModelV1, FCNModels, DeepLabModels, unet
 import torch
+from MyDataloaders_denoising import getDataloadersDic
 from torch import nn
 from torchvision import datasets
 from torch.utils.data import ConcatDataset
@@ -23,7 +24,7 @@ wandb.login(key="38818beaffe50c5403d3f87b288d36d1b38372f8")
 from prettytable import PrettyTable
 
 
-def show(torch_img, original_imgs, index, save):
+def show(torch_img, original_imgs,phase, index, save):
     # if not isinstance(torch_img,list):
     #     torch_img = [torch_img]
     toPIL = transforms.ToPILImage()
@@ -33,7 +34,7 @@ def show(torch_img, original_imgs, index, save):
         original_img = original_imgs[i].clone().detach().cpu()
         img = torch.cat((original_img, generated_img), 2)
         img = toPIL(img)  # .numpy().transpose((1, 2, 0))
-        img.save('./generatedImages/' + str(index) + '_' + str(i) + 'generated.png')
+        img.save('./generatedImages_'+phase+'/' + str(index) + '_' + str(i) + 'generated.png')
         # plt.imshow(img)
         # if save:
         #     plt.savefig('./generatedImages/'+str(index)+'_'+str(i)+'generated.jpg')
@@ -82,70 +83,91 @@ def denoising_loss(created_images, original_images):
 
 
 def training_loop(n_epochs, optimizer, lr_scheduler, model, loss_fn, train_loader, device):
-    scaler = 1
+    best_val_loss = 100
     for epoch in range(0, n_epochs + 1):
-        flag = True
-        total_train_images = 0
-        tr_loss_arr = []
-        tr_loss_l2 = []
-        tr_loss_grad = []
-        original_images_grad = []
-        pbar = tqdm(train_loader, total=len(train_loader))
 
-        for X, y in pbar:
-            batch_size = len(X)
-            total_train_images += batch_size
+        for phase in ['train', 'val']:
+            if phase == 'train':
+                model.train()  # Set model to training mode
+            else:
+                model.eval()   # Set model to evaluate mode
 
-            # torch.cuda.empty_cache()
-            model.train()
-            X = X.to(device).float()
-            y = y.to(device).float()
-            ypred = model(X)
+            flag = True
+            total_train_images = 0
+            #TODO: the Loss here are normalized using np.mean() to get the average loss across all images
+            loss = []
+            loss_l2 = []
+            loss_grad = []
+            original_images_grad = []
 
-            optimizer.zero_grad()
-            # show(X)
-            # image_gradient(X)
-            loss_l2 = loss_fn(ypred, X)*lamda["l2"]
-            loss_grad = image_gradient(ypred)*lamda["grad"]
 
-            loss = loss_l2 + loss_grad
 
-            # if (loss.item() <= 0.01):
-            #     scaler += 10
-            #     print("scaler is used to increase the loss=", scaler)
+            pbar = tqdm(train_loader, total=len(train_loader))
+            for X, y in pbar:
+                batch_size = len(X)
+                total_train_images += batch_size
 
-            tr_loss_arr.append(loss.clone().detach().cpu().numpy())
-            tr_loss_l2.append(loss_l2.clone().detach().cpu().numpy())
-            tr_loss_grad.append(loss_grad.clone().detach().cpu().numpy())
-            original_images_grad.append(image_gradient(X).clone().detach().cpu().numpy())
-            loss.backward()
-            optimizer.step()
-            show(ypred, X, index=100 + epoch, save=True)
+                # torch.cuda.empty_cache()
+                model.train()
+                X = X.to(device).float()
+                y = y.to(device).float()
+                ypred = model(X)
 
-            # ************ store sub-batch results ********************
-            # tr_loss_arr.append(loss.item()*batch_size)
-            # ioutrain += IOU_class01(y, ypred) # appending list of images' IOU
-            # dice_train += dic(y, ypred)
-            # pixelacctrain += pixelAcc(y, ypred) # appending list of images' pixel accuracy
+                optimizer.zero_grad()
+                # show(X)
+                # image_gradient(X)
+                # Calculating the loss starts here
+                with torch.set_grad_enabled(phase == 'train'):
+                    loss_l2 = loss_fn(ypred, X)*lamda["l2"]
+                    loss_grad = image_gradient(ypred)*lamda["grad"]
 
-            # temp_epoch_loss += loss.item()
-            # temp_epoch_iou += IOU_class01(y, ypred)
-            # temp_epoch_pixelAcc +=pixelAcc(y, ypred)
-            # ******************* finish storing sub-batch result *********
+                    loss = loss_l2 + loss_grad
 
-            # update the progress bar
-            pbar.set_postfix({'Epoch': epoch + 1,
-                              'Training Loss': np.mean(tr_loss_arr),
-                              'L2': np.mean(tr_loss_l2),
-                              'grad': np.mean(tr_loss_grad),
-                              'original_images_grad': np.mean(original_images_grad)
-                              })
-        # average epoch results for training
-        temp_epoch_loss = np.mean(tr_loss_arr)
-        wandb.log({"loss": np.mean(tr_loss_arr),
-                   "L2": np.mean(tr_loss_l2), "grad": np.mean(tr_loss_grad),
-                   'original_images_grad': np.mean(original_images_grad), "epoch": epoch},
-                  step=epoch)
+                    # if (loss.item() <= 0.01):
+                    #     scaler += 10
+                    #     print("scaler is used to increase the loss=", scaler)
+
+                    loss.append(loss.clone().detach().cpu().numpy())
+                    loss_l2.append(loss_l2.clone().detach().cpu().numpy())
+                    loss_grad.append(loss_grad.clone().detach().cpu().numpy())
+                    original_images_grad.append(image_gradient(X).clone().detach().cpu().numpy())
+
+                    if phase=='train':
+                        loss.backward()
+                        optimizer.step()
+                    show(ypred, X,phase, index=100 + epoch, save=True)
+
+                # ************ store sub-batch results ********************
+                # loss.append(loss.item()*batch_size)
+                # ioutrain += IOU_class01(y, ypred) # appending list of images' IOU
+                # dice_train += dic(y, ypred)
+                # pixelacctrain += pixelAcc(y, ypred) # appending list of images' pixel accuracy
+
+                # temp_epoch_loss += loss.item()
+                # temp_epoch_iou += IOU_class01(y, ypred)
+                # temp_epoch_pixelAcc +=pixelAcc(y, ypred)
+                # ******************* finish storing sub-batch result *********
+
+                # update the progress bar
+                pbar.set_postfix({phase+' Epoch': str(epoch)+"/"+str(num_epochs-1),
+                                  'Loss': np.mean(loss),
+                                  'L2': np.mean(loss_l2),
+                                  'grad': np.mean(loss_grad),
+                                  'original_images_grad': np.mean(original_images_grad)
+                                  })
+            if phase=='val' and np.mean(loss) < best_val_loss:
+                print('best loss={} so far ...'.format(np.mean(loss)))
+                wandb.run.summary["best_epoch"] = epoch
+                wandb.run.summary["val_loss"] = np.mean(loss)
+                best_val_loss = np.mean(loss)
+
+                print('saving a checkpoint')
+
+
+            wandb.log({phase+"_loss": np.mean(loss),
+                       phase+"_L2": np.mean(loss_l2), phase+"_grad": np.mean(loss_grad),
+                       phase+'_original_images_grad': np.mean(original_images_grad), phase+"_epoch": epoch},
+                      step=epoch)
 
 
 if __name__ == '__main__':
@@ -156,12 +178,16 @@ if __name__ == '__main__':
 
     run_in_colab = True
     root_dir = r"E:\Databases\dummyDataset\train"
+    child_dir = "CVC-ClinicDB"
+    imageDir = 'images_C1'
+    maskDir = 'mask_C1'
     colab_dir = "."
     if run_in_colab:
         root_dir = "/content/cvc_samples_denosing"
         colab_dir = "/content/denoising-using-deeplearning"
     num_epochs = 300
     batch_size = 30
+    shuffle = True
     lamda = {"l2":1,"grad":1} #L2 and Grad
     print("epochs {} batch size {}".format(num_epochs, batch_size))
     # ************** modify for full experiment *************
@@ -192,16 +218,19 @@ if __name__ == '__main__':
                       conv_mode='same',
                       dim=2)
 
-    image_transform = transforms.Compose([
-        transforms.Resize(target_img_size),  # Resizing the image as the VGG only take 224 x 244 as input size
-        transforms.ToTensor()])
-    train_dataset = datasets.ImageFolder(root_dir, transform=image_transform)
-    trainLoader = DataLoader(train_dataset, batch_size=batch_size)
+    # image_transform = transforms.Compose([
+    #     transforms.Resize(target_img_size),  # Resizing the image as the VGG only take 224 x 244 as input size
+    #     transforms.ToTensor()])
+    # train_dataset = datasets.ImageFolder(root_dir, transform=image_transform)
+    # trainLoader = DataLoader(train_dataset, batch_size=batch_size)
+    dataset_info = (root_dir, child_dir, imageDir, maskDir, target_img_size)
+    dataloder_info = (train_val_ratio,batch_size, shuffle)
+    Dataloaders_dic = getDataloadersDic(dataset_info, dataloder_info)
     # print(trainDataset[1])
     # exit(0)
     # trainLoader = DataLoader(trainDataset, batch_size = batchSize, shuffle=False, drop_last=False,worker_init_fn=seed_worker)
 
-    print("training images:", len(trainLoader))
+    print("training images:", len(Dataloaders_dic['train'].dataset))
 
     # model = getModel(model_name,input_channels, number_classes)
 
@@ -239,7 +268,7 @@ if __name__ == '__main__':
             "num_epochs": num_epochs,
             "dataset": root_dir.split("/")[-1], })
     training_loop(num_epochs, optimizer, lr_scheduler, model, loss_fn,
-                  trainLoader,
+                  Dataloaders_dic,
                   device)
     wandb.save(colab_dir + '/*.py')
     wandb.save(colab_dir + '/results/*')
