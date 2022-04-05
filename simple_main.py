@@ -156,11 +156,11 @@ def training_loop(n_epochs, optimizer, lr_scheduler, model, loss_fn, data_loader
                                   'grad': np.mean(loss_grad_batches),
                                   'original_images_grad': np.mean(original_images_grad)
                                   })
-            if phase=='val' and np.mean(loss) < best_val_loss:
-                print('best loss={} so far ...'.format(np.mean(loss)))
+            if phase=='val' and np.mean(loss_batches) < best_val_loss:
+                print('best loss={} so far ...'.format(np.mean(loss_batches)))
                 wandb.run.summary["best_epoch"] = epoch
-                wandb.run.summary["val_loss"] = np.mean(loss)
-                best_val_loss = np.mean(loss)
+                wandb.run.summary["val_loss"] = np.mean(loss_batches)
+                best_val_loss = np.mean(loss_batches)
 
                 print('saving a checkpoint')
 
@@ -187,7 +187,7 @@ if __name__ == '__main__':
         root_dir = "/content/CVC-ClinicDB"
         colab_dir = "/content/denoising-using-deeplearning"
     num_epochs = 300
-    batch_size = 30
+    batch_size = 20
     shuffle = True
     lamda = {"l2":1,"grad":1} #L2 and Grad
     print("epochs {} batch size {}".format(num_epochs, batch_size))
