@@ -95,9 +95,9 @@ def training_loop(n_epochs, optimizer, lr_scheduler, model, loss_fn, data_loader
             flag = True
             total_train_images = 0
             #TODO: the Loss here are normalized using np.mean() to get the average loss across all images
-            loss = []
-            loss_l2 = []
-            loss_grad = []
+            loss_batches = []
+            loss_l2_batches = []
+            loss_grad_batches = []
             original_images_grad = []
 
 
@@ -128,9 +128,9 @@ def training_loop(n_epochs, optimizer, lr_scheduler, model, loss_fn, data_loader
                     #     scaler += 10
                     #     print("scaler is used to increase the loss=", scaler)
 
-                    loss.append(loss.clone().detach().cpu().numpy())
-                    loss_l2.append(loss_l2.clone().detach().cpu().numpy())
-                    loss_grad.append(loss_grad.clone().detach().cpu().numpy())
+                    loss_batches.append(loss.clone().detach().cpu().numpy())
+                    loss_l2_batches.append(loss_l2.clone().detach().cpu().numpy())
+                    loss_grad_batches.append(loss_grad.clone().detach().cpu().numpy())
                     original_images_grad.append(image_gradient(X).clone().detach().cpu().numpy())
 
                     if phase=='train':
@@ -151,9 +151,9 @@ def training_loop(n_epochs, optimizer, lr_scheduler, model, loss_fn, data_loader
 
                 # update the progress bar
                 pbar.set_postfix({phase+' Epoch': str(epoch)+"/"+str(num_epochs-1),
-                                  'Loss': np.mean(loss),
-                                  'L2': np.mean(loss_l2),
-                                  'grad': np.mean(loss_grad),
+                                  'Loss': np.mean(loss_batches),
+                                  'L2': np.mean(loss_l2_batches),
+                                  'grad': np.mean(loss_grad_batches),
                                   'original_images_grad': np.mean(original_images_grad)
                                   })
             if phase=='val' and np.mean(loss) < best_val_loss:

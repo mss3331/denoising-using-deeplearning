@@ -49,8 +49,9 @@ class SegDataset(Dataset):
             y = self.tensor_masks[index]
         else:
             x=self.get_tensor_image(self.imageList[index])
-            y=self.get_tensor_mask(self.maskList[index]['seg_target'])
-            intermediate = self.get_tensor_mask(self.maskList[index]['seg_intermediate'])
+            y_dic = self.get_tensor_mask(self.maskList[index])
+            y = y_dic['seg_target']
+            intermediate = y_dic['seg_intermediate']
         return x, intermediate, y
 
     def __len__(self):
