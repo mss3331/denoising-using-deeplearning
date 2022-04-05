@@ -82,7 +82,7 @@ def denoising_loss(created_images, original_images):
     return total
 
 
-def training_loop(n_epochs, optimizer, lr_scheduler, model, loss_fn, train_loader, device):
+def training_loop(n_epochs, optimizer, lr_scheduler, model, loss_fn, data_loader_dic, device):
     best_val_loss = 100
     for epoch in range(0, n_epochs + 1):
 
@@ -102,15 +102,16 @@ def training_loop(n_epochs, optimizer, lr_scheduler, model, loss_fn, train_loade
 
 
 
-            pbar = tqdm(train_loader, total=len(train_loader))
-            for X, y in pbar:
+            pbar = tqdm(data_loader_dic[phase], total=len(data_loader_dic[phase]))
+            for X,intermediate, y in pbar:
                 batch_size = len(X)
                 total_train_images += batch_size
 
                 # torch.cuda.empty_cache()
                 model.train()
                 X = X.to(device).float()
-                y = y.to(device).float()
+                intermediate = intermediate.to(device).float() #intermediate is the mask with type of float
+                y = y.to(device) #this is the mask as Boolean
                 ypred = model(X)
 
                 optimizer.zero_grad()
@@ -135,7 +136,7 @@ def training_loop(n_epochs, optimizer, lr_scheduler, model, loss_fn, train_loade
                     if phase=='train':
                         loss.backward()
                         optimizer.step()
-                    show(ypred, X,phase, index=100 + epoch, save=True)
+                show(ypred, X,phase, index=100 + epoch, save=True)
 
                 # ************ store sub-batch results ********************
                 # loss.append(loss.item()*batch_size)
@@ -178,12 +179,12 @@ if __name__ == '__main__':
 
     run_in_colab = True
     root_dir = r"E:\Databases\dummyDataset\train"
-    child_dir = "CVC-ClinicDB"
+    child_dir = "data_C1"
     imageDir = 'images_C1'
     maskDir = 'mask_C1'
     colab_dir = "."
     if run_in_colab:
-        root_dir = "/content/cvc_samples_denosing"
+        root_dir = "/content/CVC-ClinicDB"
         colab_dir = "/content/denoising-using-deeplearning"
     num_epochs = 300
     batch_size = 30
