@@ -86,7 +86,7 @@ def training_loop(n_epochs, optimizer, lr_scheduler, model, loss_fn, data_loader
     best_val_loss = 100
     for epoch in range(0, n_epochs + 1):
 
-        for phase in ['train', 'val']:
+        for phase in ['train', 'val','test']:
             if phase == 'train':
                 model.train()  # Set model to training mode
             else:
@@ -122,7 +122,7 @@ def training_loop(n_epochs, optimizer, lr_scheduler, model, loss_fn, data_loader
                     loss_l2 = loss_fn(ypred, X)*lamda["l2"]
                     loss_grad = image_gradient(ypred)*lamda["grad"]
 
-                    loss = loss_l2 + loss_grad
+                    loss = loss_l2
 
                     # if (loss.item() <= 0.01):
                     #     scaler += 10
@@ -189,7 +189,7 @@ if __name__ == '__main__':
         root_dir = "/content/CVC-ClinicDB"
         colab_dir = "/content/denoising-using-deeplearning"
     num_epochs = 300
-    batch_size = 20
+    batch_size = 15
     shuffle = False
     lamda = {"l2":1,"grad":1} #L2 and Grad
     print("epochs {} batch size {}".format(num_epochs, batch_size))
@@ -226,14 +226,23 @@ if __name__ == '__main__':
     #     transforms.ToTensor()])
     # train_dataset = datasets.ImageFolder(root_dir, transform=image_transform)
     # trainLoader = DataLoader(train_dataset, batch_size=batch_size)
-    dataset_info = (root_dir, child_dir, imageDir, maskDir, target_img_size)
+    dataset_info = [(root_dir, child_dir, imageDir, maskDir, target_img_size),
+                    ("/content/trainData_EndoCV2021_5_Feb2021","data_C2","images_C2","mask_C2",target_img_size)]
     dataloder_info = (train_val_ratio,batch_size, shuffle)
     Dataloaders_dic = getDataloadersDic(dataset_info, dataloder_info)
+
+    dataset_info = ("/content/trainData_EndoCV2021_5_Feb2021", child_dir, imageDir, maskDir, target_img_size)
+    dataloder_info = (0.01,batch_size, shuffle)
+    Dataloaders_test_dic = getDataloadersDic(dataset_info, dataloder_info)
+    Dataloaders_dic['test']=Dataloaders_test_dic['val']
     # print(trainDataset[1])
     # exit(0)
     # trainLoader = DataLoader(trainDataset, batch_size = batchSize, shuffle=False, drop_last=False,worker_init_fn=seed_worker)
 
     print("training images:", len(Dataloaders_dic['train'].dataset))
+    print("val images:", len(Dataloaders_dic['val'].dataset))
+    print("test images:", len(Dataloaders_dic['test'].dataset))
+
 
     # model = getModel(model_name,input_channels, number_classes)
 
@@ -260,7 +269,7 @@ if __name__ == '__main__':
     wandb.init(
         project=wandbproject_name,
         entity="mss3331",
-        name="Denoising_testingTrainVal",
+        name="Denoising_EndoCV_train_CVCandEndoC2_testEndoC1_L2",
         # Track hyperparameters and run metadata
         config={
             "learning_rate": learning_rate,
