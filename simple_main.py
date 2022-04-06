@@ -169,7 +169,7 @@ def training_loop(n_epochs, optimizer, lr_scheduler, model, loss_fn, data_loader
 
             wandb.log({phase+"_loss": np.mean(loss_batches),
                        phase+"_L2": np.mean(loss_l2_batches), phase+"_grad": np.mean(loss_grad_batches),
-                       phase+'_original_images_grad': np.mean(original_images_grad), phase+"_epoch": epoch},
+                       phase+'_original_images_grad': np.mean(original_images_grad),"best_val_loss":best_val_loss, phase+"_epoch": epoch},
                       step=epoch)
 
 
