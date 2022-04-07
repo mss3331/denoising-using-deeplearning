@@ -35,7 +35,7 @@ def image_gradient(images,reduction='mean'):
     elif reduction=='sum':
         grad_loss = torch.sum(G)
     else:
-        grad_loss=G
+        grad_loss=G.view(*images_shape)
     return grad_loss
 
 

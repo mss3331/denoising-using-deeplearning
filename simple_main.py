@@ -121,7 +121,7 @@ if __name__ == '__main__':
     wandb.init(
         project=wandbproject_name,
         entity="mss3331",
-        name="Denoising_EndoCV_train_CVCandEndoC2_testEndoC1_L2",
+        name="Denoising_EndoCV_testing_MaskedGradLoss",
         # Track hyperparameters and run metadata
         config={
             "learning_rate": learning_rate,

@@ -44,7 +44,7 @@ def training_loop(n_epochs, optimizer, lamda, model, loss_fn, data_loader_dic, d
                     loss_l2 = loss_fn(ypred, X)*lamda["l2"]
                     loss_grad = gradMaskLoss_Eq1(X,intermediate,loss_fn)*lamda["grad"]
 
-                    loss = loss_grad
+                    loss = loss_grad+loss_l2
 
                     loss_batches.append(loss.clone().detach().cpu().numpy())
                     loss_l2_batches.append(loss_l2.clone().detach().cpu().numpy())
