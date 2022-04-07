@@ -131,6 +131,7 @@ if __name__ == '__main__':
             "lamda":lamda,
             "num_epochs": num_epochs,
             "dataset": root_dir.split("/")[-1], })
+    Dataloaders_dic.pop('test')
     training_loop(num_epochs, optimizer, lamda, model, loss_fn,
                   Dataloaders_dic,
                   device, num_epochs)

@@ -10,7 +10,7 @@ def training_loop(n_epochs, optimizer, lamda, model, loss_fn, data_loader_dic, d
     best_val_loss = 100
     for epoch in range(0, n_epochs + 1):
 
-        for phase in ['train', 'val','test']:
+        for phase in data_loader_dic.keys():
             if phase == 'train':
                 model.train()  # Set model to training mode
             else:
@@ -80,11 +80,11 @@ def training_loop(n_epochs, optimizer, lamda, model, loss_fn, data_loader_dic, d
                       step=epoch)
 
 
-def show(torch_img, original_imgs,phase, index, save):
+def show(generated_imgs, original_imgs, phase, index, save):
     # if not isinstance(torch_img,list):
     #     torch_img = [torch_img]
     toPIL = transforms.ToPILImage()
-    for i, img in enumerate(torch_img):
+    for i, img in enumerate(generated_imgs):
         if (i == 5): return
         generated_img = img.clone().detach().cpu()
         original_img = original_imgs[i].clone().detach().cpu()
