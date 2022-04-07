@@ -126,14 +126,21 @@ def deleteTail(x):
 
 
 def pruneFileNames(pair, dataset_name="CVC-ClinicDB"):
-    img_name, mask_name = pair
-    if dataset_name == "CVC-ClinicDB":
-        img_name = img_name.split('\\')[-1].split('/')[-1]
-        mask_name = mask_name.split('\\')[-1].split('/')[-1]
-    else:  # I think this is for EndoCV
-        img_name = img_name.split('_')[-1].split('.')[0]
-        mask_name = mask_name.split('_')[-2]
-    return img_name, mask_name
+    # img_name, mask_name = pair
+    # if dataset_name == "CVC-ClinicDB":
+    #     img_name = img_name.split('\\')[-1].split('/')[-1]
+    #     mask_name = mask_name.split('\\')[-1].split('/')[-1]
+    # else:  # I think this is for EndoCV
+    #     img_name = img_name.split('_')[-1].split('.')[0]
+    #     mask_name = mask_name.split('_')[-2]
+    names = []
+    for x in pair:
+        x = x.split('/')[-1]
+        x = x.split('\\')[-1]  # images_C1\\1.png --> 1.png for both (linux) and (windows)
+        x = x.split('_mask')[0]  # C3_0110_mask.jpg --> C3_0110
+        x = x.split('.')[0]
+        names.append(x)
+    return names
 
 
 def identifyMismatch(imageList, maskList, dataset_name="CVC-ClinicDB", examples=2):
