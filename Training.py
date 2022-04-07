@@ -4,31 +4,7 @@ import numpy as np
 from tqdm import tqdm
 from torch import nn
 from torchvision import transforms
-
-def image_gradient(images):
-    device = torch.device('cuda:0')
-    a = np.array([[1, 0, -1], [2, 0, -2], [1, 0, -1]])
-    conv1 = nn.Conv2d(1, 1, kernel_size=3, stride=1, padding=1, bias=False)
-    conv1.weight = nn.Parameter(torch.from_numpy(a).float().unsqueeze(0).unsqueeze(0), requires_grad=False)
-    # print(conv1.weight)
-    conv1.to(device)
-    # -----------------------------------------------------------
-    b = np.array([[1, 2, 1], [0, 0, 0], [-1, -2, -1]])
-    conv2 = nn.Conv2d(1, 1, kernel_size=3, stride=1, padding=1, bias=False)
-    conv2.weight = nn.Parameter(torch.from_numpy(b).float().unsqueeze(0).unsqueeze(0), requires_grad=False)
-    conv2.to(device)
-    # -----------------------------------------
-    # images.shape = [batch, C, H, W]
-    images_shape = images.shape
-    # images.reshape = [batch*C, 1, H, W]
-    images = images.view(-1, 1, *images_shape[-2:])
-
-    G_x = conv1(images)
-    G_y = conv2(images)
-    G = torch.sqrt(torch.pow(G_x, 2) + torch.pow(G_y, 2)+0.000000000000001)
-    grad_loss = torch.sum(G) / (images_shape[0] * images_shape[1] * images_shape[2] * images_shape[3])
-    return grad_loss
-
+from My_losses import *
 
 def training_loop(n_epochs, optimizer, lamda, model, loss_fn, data_loader_dic, device,num_epochs):
     best_val_loss = 100
@@ -55,7 +31,7 @@ def training_loop(n_epochs, optimizer, lamda, model, loss_fn, data_loader_dic, d
                 batch_size = len(X)
                 total_train_images += batch_size
 
-                # torch.cuda.empty_cache()
+
                 model.train()
                 X = X.to(device).float()
                 intermediate = intermediate.to(device).float() #intermediate is the mask with type of float
@@ -63,18 +39,12 @@ def training_loop(n_epochs, optimizer, lamda, model, loss_fn, data_loader_dic, d
                 ypred = model(X)
 
                 optimizer.zero_grad()
-                # show(X)
-                # image_gradient(X)
-                # Calculating the loss starts here
+
                 with torch.set_grad_enabled(phase == 'train'):
                     loss_l2 = loss_fn(ypred, X)*lamda["l2"]
-                    loss_grad = image_gradient(ypred)*lamda["grad"]
+                    loss_grad = gradMaskLoss_Eq1(X,intermediate,loss_fn)*lamda["grad"]
 
-                    loss = loss_l2
-
-                    # if (loss.item() <= 0.01):
-                    #     scaler += 10
-                    #     print("scaler is used to increase the loss=", scaler)
+                    loss = loss_grad
 
                     loss_batches.append(loss.clone().detach().cpu().numpy())
                     loss_l2_batches.append(loss_l2.clone().detach().cpu().numpy())
@@ -87,17 +57,6 @@ def training_loop(n_epochs, optimizer, lamda, model, loss_fn, data_loader_dic, d
                 if flag:
                     show(ypred, X,phase, index=100 + epoch, save=True)
                     flag=False
-
-                # ************ store sub-batch results ********************
-                # loss.append(loss.item()*batch_size)
-                # ioutrain += IOU_class01(y, ypred) # appending list of images' IOU
-                # dice_train += dic(y, ypred)
-                # pixelacctrain += pixelAcc(y, ypred) # appending list of images' pixel accuracy
-
-                # temp_epoch_loss += loss.item()
-                # temp_epoch_iou += IOU_class01(y, ypred)
-                # temp_epoch_pixelAcc +=pixelAcc(y, ypred)
-                # ******************* finish storing sub-batch result *********
 
                 # update the progress bar
                 pbar.set_postfix({phase+' Epoch': str(epoch)+"/"+str(num_epochs-1),
@@ -141,13 +100,3 @@ def show(torch_img, original_imgs,phase, index, save):
         #     plt.clf()
         # print(img)
 
-def denoising_loss(created_images, original_images):
-    alpha = torch.sum(torch.pow(created_images - original_images, 2)) / (
-            original_images.shape[-1] * original_images.shape[-2])
-    beta = 0.1 * image_gradient(created_images)
-    if alpha > 1000 or beta > 100:
-        print((original_images.shape[-1] * original_images.shape[-2]))
-
-    total = beta  # alpha + beta
-    print(alpha, beta)
-    return total
