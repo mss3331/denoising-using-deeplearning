@@ -34,7 +34,7 @@ class SegDataset(Dataset):
         # self.maskList.sort()
         mismatch = identifyMismatch(self.imageList, self.maskList)
         print('Number of mismatch for Data{} is {}'.format(dataset_name, mismatch))
-        # assert(mismatch==0)
+        assert(mismatch==0)
         # At this stage we are sure that the mask corresponds to its mask
         self.targetSize = targetSize
         self.tensor_images = []
@@ -115,8 +115,8 @@ def trainTestSplit(dataset, TTR):
 
 def deleteTail(x):
     # print(x)
-    x = x.split('/')[
-        -1]  # D:/Databases/CVC-ClinicDB/data_C1/images_C1\\1.png --> images_C1\\1.png (windows) 1.png (linux)
+    # D:/Databases/CVC-ClinicDB/data_C1/images_C1\\1.png --> images_C1\\1.png (windows) 1.png (linux)
+    x = x.split('/')[-1]
     x = x.split('\\')[-1]  # images_C1\\1.png --> 1.png for both (linux) and (windows)
     x = x.split('_mask')[0]  # C3_0110_mask.jpg --> C3_0110
     x = x.split('.')[0]  # C3_0110.jpg --> C3_0110
@@ -142,7 +142,7 @@ def identifyMismatch(imageList, maskList, dataset_name="CVC-ClinicDB", examples=
         img_name, mask_name = pruneFileNames(pair)
         if img_name != mask_name:
             mismatch += 1
-            # print('img={} mask={}'.format(img_name,mask_name))
+            print('img={} mask={}'.format(img_name,mask_name))
         if examples > 0:
             pprint(pair)
             examples -= 1
