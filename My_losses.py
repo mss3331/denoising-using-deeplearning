@@ -5,7 +5,7 @@ from torch import nn
 def gradMaskLoss_Eq1(images,mask,loss_fn):
     r'''‖∇g∙mask(g)‖^2 == MSELoss(∇g∙mask(g),torch.zeros(∇g.shape)'''
     images_grad=image_gradient(images, reduction=None)
-    masked_grad = torch.mul(images_grad*mask)
+    masked_grad = torch.mul(images_grad,mask)
     return loss_fn(masked_grad,torch.zeros(masked_grad.shape))
 
 
