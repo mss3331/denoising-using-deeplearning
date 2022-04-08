@@ -56,7 +56,7 @@ def training_loop(n_epochs, optimizer, lamda, model, loss_fn, data_loader_dic, d
                         loss.backward()
                         optimizer.step()
                 if flag:
-                    show(ypred, X,phase, index=100 + epoch, save=True)
+                    show(ypred, X, intermediate, phase, index=100 + epoch, save=True)
                     flag=False
 
                 # update the progress bar
@@ -81,15 +81,17 @@ def training_loop(n_epochs, optimizer, lamda, model, loss_fn, data_loader_dic, d
                       step=epoch)
 
 
-def show(generated_imgs, original_imgs, phase, index, save):
+def show(generated_imgs, original_imgs,masks, phase, index, save):
     # if not isinstance(torch_img,list):
     #     torch_img = [torch_img]
+    masks = masks.repeat(1,3,1,1)
     toPIL = transforms.ToPILImage()
     for i, img in enumerate(generated_imgs):
         if (i == 5): return
         generated_img = img.clone().detach().cpu()
         original_img = original_imgs[i].clone().detach().cpu()
-        img = torch.cat((original_img, generated_img), 2)
+        mask_img = masks[i].clone().detach().cpu()
+        img = torch.cat((original_img, generated_img,mask_img), 2)
         img = toPIL(img)  # .numpy().transpose((1, 2, 0))
         img.save('./generatedImages_'+phase+'/' + str(index) + '_' + str(i) + 'generated.png')
         # plt.imshow(img)
