@@ -6,10 +6,8 @@ def gradMaskLoss_Eq1(images,mask,loss_fn):
     r'''‖∇g∙mask(g)‖^2 == MSELoss(∇g∙mask(g),torch.zeros(∇g.shape)'''
     device=torch.device('cuda:0')
     images_grad=image_gradient(images, reduction=None)
-    print(mask.shape,images_grad.shape)
-    exit(0)
     masked_grad = torch.mul(images_grad,1-mask)
-    return loss_fn(masked_grad,torch.zeros(masked_grad.shape).to(device))
+    return loss_fn(masked_grad,torch.zeros(images.shape).to(device))
 
 
 def image_gradient(images,reduction='mean'):

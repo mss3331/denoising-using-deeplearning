@@ -78,8 +78,8 @@ if __name__ == '__main__':
     #     transforms.ToTensor()])
     # train_dataset = datasets.ImageFolder(root_dir, transform=image_transform)
     # trainLoader = DataLoader(train_dataset, batch_size=batch_size)
-    dataset_info = [(root_dir, child_dir, imageDir, maskDir, target_img_size),
-                    ("/content/trainData_EndoCV2021_5_Feb2021","data_C2","images_C2","mask_C2",target_img_size)]
+    dataset_info = [(root_dir, child_dir, imageDir, maskDir, target_img_size)]#,
+                    #("/content/trainData_EndoCV2021_5_Feb2021","data_C2","images_C2","mask_C2",target_img_size)]
     dataloder_info = (train_val_ratio,batch_size, shuffle)
     Dataloaders_dic = getDataloadersDic(dataset_info, dataloder_info)
 

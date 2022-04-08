@@ -43,7 +43,7 @@ def training_loop(n_epochs, optimizer, lamda, model, loss_fn, data_loader_dic, d
 
                 with torch.set_grad_enabled(phase == 'train'):
                     loss_l2 = loss_fn(ypred, X)*lamda["l2"]
-                    loss_grad = gradMaskLoss_Eq1(X,intermediate,loss_fn)*lamda["grad"]
+                    loss_grad = gradMaskLoss_Eq1(ypred,intermediate,loss_fn)*lamda["grad"]
 
                     loss = loss_grad+loss_l2
 
