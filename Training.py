@@ -18,7 +18,8 @@ def training_loop(n_epochs, optimizer, lamda, model, loss_fn, data_loader_dic, d
 
             flag = True
             total_train_images = 0
-            #TODO: the Loss here are normalized using np.mean() to get the average loss across all images
+            #TODO: the Loss here are normalized using np.mean() to get the average loss across all images. However,
+            #TODO: last epoch may have less images hence, mean is not accurate
             loss_batches = []
             loss_l2_batches = []
             loss_grad_batches = []
