@@ -132,14 +132,9 @@ if __name__ == '__main__':
             "num_epochs": num_epochs,
             "dataset": root_dir.split("/")[-1], })
     Dataloaders_dic.pop('test')
-
     training_loop(num_epochs, optimizer, lamda, model, loss_fn,
                   Dataloaders_dic,
                   device, num_epochs)
-    blure_background_training_loop(num_epochs, optimizer, lamda, model, loss_fn,
-                  Dataloaders_dic,
-                  device, num_epochs)
-
     wandb.save(colab_dir + '/*.py')
     wandb.save(colab_dir + '/results/*')
     wandb.save(colab_dir + '/models/*')
