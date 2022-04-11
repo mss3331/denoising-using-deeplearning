@@ -11,7 +11,7 @@ from MyDataloaders import *
 from Metrics import *
 from models import MyModelV1, FCNModels, DeepLabModels, unet
 import torch
-from MyDataloaders_denoising import getDataloadersDic
+from MyDataloaders_denoising import blure_background_getDataloadersDic
 from torch import nn
 from Training import training_loop
 from torchvision import datasets
