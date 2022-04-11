@@ -13,7 +13,7 @@ from models import MyModelV1, FCNModels, DeepLabModels, unet
 import torch
 from MyDataloaders_denoising import blure_background_getDataloadersDic
 from torch import nn
-from Training import training_loop
+from Training import blure_background_training_loop
 from torchvision import datasets
 from torch.utils.data import ConcatDataset
 from torch.utils.data import DataLoader
@@ -81,11 +81,11 @@ if __name__ == '__main__':
     dataset_info = [(root_dir, child_dir, imageDir, maskDir, target_img_size)]#,
                     #("/content/trainData_EndoCV2021_5_Feb2021","data_C2","images_C2","mask_C2",target_img_size)]
     dataloder_info = (train_val_ratio,batch_size, shuffle)
-    Dataloaders_dic = getDataloadersDic(dataset_info, dataloder_info)
+    Dataloaders_dic = blure_background_getDataloadersDic(dataset_info, dataloder_info)
 
     dataset_info = ("/content/trainData_EndoCV2021_5_Feb2021", child_dir, imageDir, maskDir, target_img_size)
     dataloder_info = (0.01,batch_size, shuffle)
-    Dataloaders_test_dic = getDataloadersDic(dataset_info, dataloder_info)
+    Dataloaders_test_dic = blure_background_getDataloadersDic(dataset_info, dataloder_info)
     Dataloaders_dic['test']=Dataloaders_test_dic['val']
     # print(trainDataset[1])
     # exit(0)
@@ -132,7 +132,7 @@ if __name__ == '__main__':
             "num_epochs": num_epochs,
             "dataset": root_dir.split("/")[-1], })
     Dataloaders_dic.pop('test')
-    blure_background_getDataloadersDic(num_epochs, optimizer, lamda, model, loss_fn,
+    blure_background_training_loop(num_epochs, optimizer, lamda, model, loss_fn,
                   Dataloaders_dic,
                   device, num_epochs)
     wandb.save(colab_dir + '/*.py')
