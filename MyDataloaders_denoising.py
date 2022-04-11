@@ -5,7 +5,7 @@ from pprint import pprint
 from PIL import Image
 from torch.utils.data import Dataset, DataLoader, ConcatDataset
 from torchvision import transforms
-from torch.nn import functional as F
+import torchvision.transforms.functional as TF
 import collections
 
 
@@ -206,7 +206,7 @@ class blure_background_SegDataset(Dataset):
             y_dic = self.get_tensor_mask(self.maskList[index])
             y = y_dic['seg_target']#mask as a boolean (for log loss)
             intermediate = y_dic['seg_intermediate']#it is a mask as a float (for L2 loss)
-            x_blure = F.gaussian_blur(x,10)
+            x_blure = TF.gaussian_blur(x,10)
             x = x_blure.mul(1-intermediate)+ x.mul(intermediate) #bluring the background and keeping the polyp
         return x, intermediate, y
 
