@@ -161,7 +161,7 @@ def blure_background_getDataloadersDic(dataset_info, dataloder_info):
         dataset_info = [dataset_info]
 
     for i, info in enumerate(dataset_info):
-        datasets_list.append(SegDataset(*info))
+        datasets_list.append(blure_background_SegDataset(*info))
 
     dataset = ConcatDataset(datasets_list)
     train_val_ratio, batchSize, shuffle = dataloder_info
