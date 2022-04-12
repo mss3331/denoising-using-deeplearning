@@ -78,15 +78,15 @@ if __name__ == '__main__':
     #     transforms.ToTensor()])
     # train_dataset = datasets.ImageFolder(root_dir, transform=image_transform)
     # trainLoader = DataLoader(train_dataset, batch_size=batch_size)
-    dataset_info = [(root_dir, child_dir, imageDir, maskDir, target_img_size)]#,
-                    #("/content/trainData_EndoCV2021_5_Feb2021","data_C2","images_C2","mask_C2",target_img_size)]
+    dataset_info = [(root_dir, child_dir, imageDir, maskDir, target_img_size),
+                    ("/content/trainData_EndoCV2021_5_Feb2021","data_C2","images_C2","mask_C2",target_img_size)]
     dataloder_info = (train_val_ratio,batch_size, shuffle)
     Dataloaders_dic = blure_background_getDataloadersDic(dataset_info, dataloder_info)
 
     dataset_info = ("/content/trainData_EndoCV2021_5_Feb2021", child_dir, imageDir, maskDir, target_img_size)
     dataloder_info = (0.01,batch_size, shuffle)
     Dataloaders_test_dic = blure_background_getDataloadersDic(dataset_info, dataloder_info)
-    Dataloaders_dic['test']=Dataloaders_test_dic['val']
+    # Dataloaders_dic['test']=Dataloaders_test_dic['val']
     # print(trainDataset[1])
     # exit(0)
     # trainLoader = DataLoader(trainDataset, batch_size = batchSize, shuffle=False, drop_last=False,worker_init_fn=seed_worker)
@@ -121,7 +121,7 @@ if __name__ == '__main__':
     wandb.init(
         project=wandbproject_name,
         entity="mss3331",
-        name="Denoising_EndoCV_bluringX_training_Mechanism_Exp1",
+        name="Denoising_EndoCV_bluringX_training_Mechanism_Exp2",
         # Track hyperparameters and run metadata
         config={
             "learning_rate": learning_rate,
