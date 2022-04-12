@@ -174,8 +174,10 @@ def blure_background_training_loop(n_epochs, optimizer, lamda, model, loss_fn, d
                        phase + "_epoch": epoch},
                       step=epoch)
 
-def blure_background_trainingMechanism_training_loop(n_epochs, optimizer, lamda, model, loss_fn, data_loader_dic, device, num_epochs):
+def blure_background_trainingMechanism_training_loop(n_epochs, optimizer, lamda, model, loss_fn,
+                                                     data_loader_dic, device, num_epochs,switch_epoch):
     best_val_loss = 1000
+
     for epoch in range(0, n_epochs + 1):
 
         for phase in data_loader_dic.keys():
@@ -209,10 +211,12 @@ def blure_background_trainingMechanism_training_loop(n_epochs, optimizer, lamda,
                 with torch.set_grad_enabled(phase == 'train'):
                     loss_l2 = loss_fn(ypred, X) * lamda["l2"]
                     loss_grad = image_gradient(ypred) * lamda["grad"]
-                    if epoch <= 3:
+
+                    if epoch <= switch_epoch:
                         loss = loss_l2
                     else:
                         loss = loss_fn(torch.mul(ypred,intermediate), torch.mul(X,intermediate))*torch.sum(intermediate)
+
 
                     loss_batches.append(loss.clone().detach().cpu().numpy())
                     loss_l2_batches.append(loss_l2.clone().detach().cpu().numpy())
@@ -233,6 +237,8 @@ def blure_background_trainingMechanism_training_loop(n_epochs, optimizer, lamda,
                                   'grad': np.mean(loss_grad_batches),
                                   'original_images_grad': np.mean(original_images_grad)
                                   })
+            if epoch==switch_epoch:
+                best_val_loss = np.mean(loss_batches)
             if phase == 'val' and np.mean(loss_batches) < best_val_loss:
                 print('best loss={} so far ...'.format(np.mean(loss_batches)))
                 wandb.run.summary["best_epoch"] = epoch
