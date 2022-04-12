@@ -11,9 +11,9 @@ from MyDataloaders import *
 from Metrics import *
 from models import MyModelV1, FCNModels, DeepLabModels, unet
 import torch
-from MyDataloaders_denoising import blure_background_trainingMechanism_training_loop
+from MyDataloaders_denoising import blure_background_getDataloadersDic
 from torch import nn
-from Training import blure_background_training_loop
+from Training import blure_background_trainingMechanism_training_loop
 from torchvision import datasets
 from torch.utils.data import ConcatDataset
 from torch.utils.data import DataLoader
@@ -121,7 +121,7 @@ if __name__ == '__main__':
     wandb.init(
         project=wandbproject_name,
         entity="mss3331",
-        name="Denoising_EndoCV_bluringX_Exp1",
+        name="Denoising_EndoCV_bluringX_training_Mechanism_Exp1",
         # Track hyperparameters and run metadata
         config={
             "learning_rate": learning_rate,
