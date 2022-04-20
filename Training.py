@@ -290,7 +290,6 @@ def two_stages_training_loop(num_epochs, optimizer, lamda, model, loss_fn_sum, d
 
                 with torch.set_grad_enabled(phase == 'train'):
 
-                    loss_l2 = loss_fn_sum(ypred, X)
                     if epoch==switch_epoch: #update the best_val_loss threshold
                         best_val_loss = 1000
                     if epoch < switch_epoch: # focus on minimizing ‖f-g‖^2
