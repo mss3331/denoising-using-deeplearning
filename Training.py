@@ -298,8 +298,10 @@ def two_stages_training_loop(num_epochs, optimizer, lamda, model, loss_fn_sum, d
                         loss_grad = image_gradient(ypred)
                         loss = loss_l2
                     else:  # move to stage 2 loss: ‖f-g * mask(polyp)‖^2 + ‖∇g *mask(1-polyp)‖^2
-                        loss_l2 = loss_fn_sum( torch.mul(ypred-X,intermediate) )/torch.sum(intermediate)
-                        loss_grad = loss_fn_sum( torch.mul(image_gradient(ypred,'No reduction'), 1-intermediate) )/torch.sum(1-intermediate)
+                        loss_l2 = torch.sum(torch.pow(torch.mul(ypred-X,intermediate),2))/torch.sum(intermediate)
+                        gradients = image_gradient(ypred,'No reduction')
+                        gradients_masked = torch.mul(gradients, 1-intermediate) #consider only background
+                        loss_grad = torch.sum(torch.pow(gradients_masked,2))/torch.sum(1-intermediate)
                         loss = loss_grad + loss_l2
 
                     loss_batches.append(loss.clone().detach().cpu().numpy())
