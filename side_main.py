@@ -1,3 +1,4 @@
+#9064466c4a4f16db52c1672e03ee3c52060a24e4 token
 import torch.optim as optim
 # import matplotlib.pyplot as plt
 import wandb
@@ -13,7 +14,7 @@ from models import MyModelV1, FCNModels, DeepLabModels, unet
 import torch
 from MyDataloaders_denoising import getDataloadersDic
 from torch import nn
-from Training import training_loop
+from Training import two_stages_training_loop
 from torchvision import datasets
 from torch.utils.data import ConcatDataset
 from torch.utils.data import DataLoader
@@ -26,11 +27,12 @@ wandb.login(key="38818beaffe50c5403d3f87b288d36d1b38372f8")
 
 
 if __name__ == '__main__':
+    '''This main is created to do side experiments'''
 
     learning_rate = 0.01
     input_channels = 3
     number_classes = 3  # output channels should be one mask for binary class
-
+    switch_epoch = 3 # when to switch to the next training stage?
     run_in_colab = True
     root_dir = r"E:\Databases\dummyDataset\train"
     child_dir = "data_C1"
@@ -111,9 +113,8 @@ if __name__ == '__main__':
     # loss_fn = nn.BCELoss()
     # weight = torch.tensor([0.2, 0.8]).to(device)
     # loss_fn = nn.CrossEntropyLoss(weight) this is the loss of the accepted paper
-    loss_fn = nn.MSELoss()  # this is the handseg loss
-    lr_scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer=optimizer, gamma=0.8)
-    lr_scheduler = None
+    loss_fn = nn.MSELoss(reduction='sum')  # this is the handseg loss
+
     # call the training loop,
     # make sure to pass correct checkpoint path, or none if starting with the training
     start = time.time()
@@ -121,7 +122,7 @@ if __name__ == '__main__':
     wandb.init(
         project=wandbproject_name,
         entity="mss3331",
-        name="Denoising_EndoCV_testing_MaskedGradLoss",
+        name="Denoising_testing_TwoStagesTraining",
         # Track hyperparameters and run metadata
         config={
             "learning_rate": learning_rate,
@@ -133,9 +134,8 @@ if __name__ == '__main__':
             "dataset": root_dir.split("/")[-1], })
     Dataloaders_dic.pop('test')
 
-    training_loop(num_epochs, optimizer, lamda, model, loss_fn,
-                  Dataloaders_dic,
-                  device)
+    two_stages_training_loop(num_epochs, optimizer, lamda, model, loss_fn,
+                  Dataloaders_dic, device, switch_epoch)
 
     wandb.save(colab_dir + '/*.py')
     wandb.save(colab_dir + '/results/*')
