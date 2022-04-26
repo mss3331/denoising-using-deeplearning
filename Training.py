@@ -387,7 +387,10 @@ def pefect_filter_training_loop(num_epochs, optimizer, lamda, model, loss_fn,
                     kernel_243 = model.models[2].weight
                     #resize
                     kernel_243 = nn.functional.interpolate(kernel_243,size=intermediate.shape[2:], mode='bilinear')
-                    show(ypred, intermediate,kernel_243, phase, index=100 + epoch, save=True)
+                    #ypred is mask (N,1,H,W), original imgs here are the original mask. masks here is the kernel
+                    #all of them have the same dimensions except the kernel it has three dim
+                    show_filter(generated_imgs=ypred, original_imgs=intermediate,masks=kernel_243,
+                         phase=phase, index=100 + epoch, save=True)
                     flag = False
 
                 # update the progress bar
@@ -410,3 +413,29 @@ def pefect_filter_training_loop(num_epochs, optimizer, lamda, model, loss_fn,
                        phase + '_original_images_grad': np.mean(original_images_grad), "best_val_loss": best_val_loss,
                        phase + "_epoch": epoch},
                       step=epoch)
+
+def show_filter(generated_masks, original_masks,kernel3D, phase, index, save):
+    # if not isinstance(torch_img,list):
+    #     torch_img = [torch_img]
+    if not original_masks.shape == kernel3D.shape:
+        original_masks = original_masks.repeat(1,3,1,1)
+    if not generated_masks.shape == kernel3D.shape:
+        generated_masks = generated_masks.repeat(1,3,1,1)
+
+    toPIL = transforms.ToPILImage()
+    for i, img in enumerate(generated_masks):
+        if (i == 5): return
+        generated_mask = img.clone().detach().cpu()
+        original_mask = original_masks[i].clone().detach().cpu()
+        kernel_img = kernel3D.clone().detach().cpu()
+        img = torch.cat((original_mask, generated_mask,kernel_img), 2)
+        img = toPIL(img)  # .numpy().transpose((1, 2, 0))
+        img.save('./generatedImages_'+phase+'/' + str(index) + '_' + str(i) + 'generated.png')
+        # plt.imshow(img)
+        # if save:
+        #     plt.savefig('./generatedImages/'+str(index)+'_'+str(i)+'generated.jpg')
+        #     plt.clf()
+        # else:
+        #     plt.show()
+        #     plt.clf()
+        # print(img)
