@@ -369,8 +369,8 @@ def pefect_filter_training_loop(num_epochs, optimizer, lamda, model, loss_fn,
                 optimizer.zero_grad()
 
                 with torch.set_grad_enabled(phase == 'train'):
-
-                    loss = loss_fn(ypred,intermediate)
+                    #ypred = (N,1,H,W)
+                    loss = loss_fn(ypred.Squeeze(),intermediate)
                     loss_l2 = torch.Tensor((1))
                     loss_grad = torch.Tensor((1))
                     loss_batches.append(loss.clone().detach().cpu().numpy())
@@ -382,7 +382,7 @@ def pefect_filter_training_loop(num_epochs, optimizer, lamda, model, loss_fn,
                         loss.backward()
                         optimizer.step()
                 if flag:
-                    kernel_243 = model.models[2].weight.squeeze()
+                    kernel_243 = model.models[2].weight
                     #resize
                     kernel_243 = nn.functional.interpolate(kernel_243,size=intermediate.shape[1:], mode='bilinear')
                     show(ypred, intermediate,kernel_243, phase, index=100 + epoch, save=True)
