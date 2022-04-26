@@ -372,7 +372,7 @@ def pefect_filter_training_loop(num_epochs, optimizer, lamda, model, loss_fn,
 
                 with torch.set_grad_enabled(phase == 'train'):
                     #ypred = (N,1,H,W)
-                    loss = loss_fn(ypred.squeeze(),intermediate)
+                    loss = loss_fn(ypred.squeeze(),intermediate.squeeze())
                     loss_l2 = torch.Tensor((1))
                     loss_grad = torch.Tensor((1))
                     loss_batches.append(loss.clone().detach().cpu().numpy())
@@ -389,7 +389,7 @@ def pefect_filter_training_loop(num_epochs, optimizer, lamda, model, loss_fn,
                     kernel_243 = nn.functional.interpolate(kernel_243,size=intermediate.shape[2:], mode='bilinear')
                     #ypred is mask (N,1,H,W), original imgs here are the original mask. masks here is the kernel
                     #all of them have the same dimensions except the kernel it has three dim
-                    show_filter(generated_imgs=ypred, original_imgs=intermediate,masks=kernel_243,
+                    show_filter(generated_masks=ypred, original_masks=intermediate,kernel3D=kernel_243,
                          phase=phase, index=100 + epoch, save=True)
                     flag = False
 
