@@ -67,7 +67,7 @@ if __name__ == '__main__':
     ########################### unet model #####################################################
     # [unit.UNET]
     model_name = "kernels"
-    model = unet.kernels()
+    model = kernels.kernels()
 
     # image_transform = transforms.Compose([
     #     transforms.Resize(target_img_size),  # Resizing the image as the VGG only take 224 x 244 as input size

@@ -382,7 +382,10 @@ def pefect_filter_training_loop(num_epochs, optimizer, lamda, model, loss_fn,
                         loss.backward()
                         optimizer.step()
                 if flag:
-                    show(ypred, X, intermediate, phase, index=100 + epoch, save=True)
+                    kernel_243 = model.models[2].weight.squeeze()
+                    #resize
+                    kernel_243 = nn.functional.interpolate(kernel_243,size=intermediate.shape[1:], mode='bilinear')
+                    show(ypred, intermediate,kernel_243, phase, index=100 + epoch, save=True)
                     flag = False
 
                 # update the progress bar
