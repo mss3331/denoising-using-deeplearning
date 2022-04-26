@@ -417,9 +417,11 @@ def pefect_filter_training_loop(num_epochs, optimizer, lamda, model, loss_fn,
 def show_filter(generated_masks, original_masks,kernel3D, phase, index, save):
     # if not isinstance(torch_img,list):
     #     torch_img = [torch_img]
+    kernel3D = kernel3D.squeeze() # (1,3,H,W) ==> (3,H,W)
     if not original_masks.shape == kernel3D.shape:
         original_masks = original_masks.repeat(1,3,1,1)
     if not generated_masks.shape == kernel3D.shape:
+        generated_masks.unsqueeze_(dim=1)
         generated_masks = generated_masks.repeat(1,3,1,1)
 
     toPIL = transforms.ToPILImage()

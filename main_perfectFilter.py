@@ -116,7 +116,7 @@ if __name__ == '__main__':
     wandb.init(
         project=wandbproject_name,
         entity="mss3331",
-        name="Denoising_testing_PerfectFilter",
+        name="Denoising_testing_PerfectFilter_Exp1",
         # Track hyperparameters and run metadata
         config={
             "learning_rate": learning_rate,
