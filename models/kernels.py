@@ -2,7 +2,7 @@ import torch.nn as nn
 import torch
 
 class kernels(nn.Module):
-    def __init__(self, kernel_size_list=[27, 81, 243], repeat=2):
+    def __init__(self, kernel_size_list=[27, 55, 81], repeat=2):
         super().__init__()
         conv_list = [nn.Conv2d(in_channels=3,out_channels=1,kernel_size=kernel_size, bias=False, padding=kernel_size//2)
                      for kernel_size in kernel_size_list]
