@@ -84,7 +84,9 @@ def training_loop(num_epochs, optimizer, lamda, model, loss_fn, data_loader_dic,
 def show(generated_imgs, original_imgs,masks, phase, index, save):
     # if not isinstance(torch_img,list):
     #     torch_img = [torch_img]
-    masks = masks.repeat(1,3,1,1)
+    if not masks.shape == original_imgs.shape:
+        masks = masks.repeat(1,3,1,1)
+
     toPIL = transforms.ToPILImage()
     for i, img in enumerate(generated_imgs):
         if (i == 5): return
@@ -370,7 +372,7 @@ def pefect_filter_training_loop(num_epochs, optimizer, lamda, model, loss_fn,
 
                 with torch.set_grad_enabled(phase == 'train'):
                     #ypred = (N,1,H,W)
-                    loss = loss_fn(ypred.Squeeze(),intermediate)
+                    loss = loss_fn(ypred.squeeze(),intermediate)
                     loss_l2 = torch.Tensor((1))
                     loss_grad = torch.Tensor((1))
                     loss_batches.append(loss.clone().detach().cpu().numpy())
@@ -384,7 +386,7 @@ def pefect_filter_training_loop(num_epochs, optimizer, lamda, model, loss_fn,
                 if flag:
                     kernel_243 = model.models[2].weight
                     #resize
-                    kernel_243 = nn.functional.interpolate(kernel_243,size=intermediate.shape[1:], mode='bilinear')
+                    kernel_243 = nn.functional.interpolate(kernel_243,size=intermediate.shape[2:], mode='bilinear')
                     show(ypred, intermediate,kernel_243, phase, index=100 + epoch, save=True)
                     flag = False
 
