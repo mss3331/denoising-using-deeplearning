@@ -426,6 +426,7 @@ def show_filter(generated_masks, original_masks,kernel3D, phase, index, save):
     kernel_img = kernel3D.clone().detach()
     # normalize kernel_img
     kernel_img = (kernel_img - torch.min(kernel_img))/(torch.max(kernel_img) - torch.min(kernel_img))
+    kernel_img =kernel_img.cpu()
     toPIL = transforms.ToPILImage()
     for i, img in enumerate(generated_masks):
         if (i == 5): return
