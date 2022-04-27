@@ -45,7 +45,7 @@ if __name__ == '__main__':
     num_epochs = 300
     batch_size = 15
     shuffle = False
-    lamda = {"l2":1,"grad":1} #L2 and Grad
+    lamda = {"l2":1,"grad":10} #L2 and Grad
     print("epochs {} batch size {}".format(num_epochs, batch_size))
     # ************** modify for full experiment *************
     # load_to_RAM = True
@@ -122,7 +122,7 @@ if __name__ == '__main__':
     wandb.init(
         project=wandbproject_name,
         entity="mss3331",
-        name="Denoising_testing_TwoStagesTraining",
+        name="Denoising_testing_Exp4_TwoStagestraining_Mechanism_colorGrad",
         # Track hyperparameters and run metadata
         config={
             "learning_rate": learning_rate,

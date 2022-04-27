@@ -303,7 +303,7 @@ def two_stages_training_loop(num_epochs, optimizer, lamda, model, loss_fn_sum, d
                         gradients = color_gradient(ypred,'No reduction')
                         gradients_masked = torch.mul(gradients, 1-intermediate) #consider only background
                         loss_grad = torch.sum(torch.pow(gradients_masked,2))/torch.sum(1-intermediate)
-                        loss = loss_grad + loss_l2
+                        loss = loss_grad*lamda['grad'] + loss_l2*lamda['l2']
 
                     loss_batches.append(loss.clone().detach().cpu().numpy())
                     loss_l2_batches.append(loss_l2.clone().detach().cpu().numpy())
