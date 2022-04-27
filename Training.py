@@ -295,12 +295,12 @@ def two_stages_training_loop(num_epochs, optimizer, lamda, model, loss_fn_sum, d
                     if epoch==switch_epoch: #update the best_val_loss threshold
                         best_val_loss = 1000
                     if epoch < switch_epoch: # focus on minimizing ‖f-g‖^2
-                        loss_l2 = loss_fn_sum(ypred,X)/torch.numel(X)
-                        loss_grad = image_gradient_noSqrt(ypred)
+                        loss_l2 = loss_fn_sum(ypred,X)/X.numel()
+                        loss_grad = color_gradient(ypred)
                         loss = loss_l2
                     else:  # move to stage 2 loss: ‖f-g * mask(polyp)‖^2 + ‖∇g *mask(1-polyp)‖^2
                         loss_l2 = torch.sum(torch.pow(torch.mul(ypred-X,intermediate),2))/torch.sum(intermediate)
-                        gradients = image_gradient_noSqrt(ypred,'No reduction')
+                        gradients = color_gradient(ypred,'No reduction')
                         gradients_masked = torch.mul(gradients, 1-intermediate) #consider only background
                         loss_grad = torch.sum(torch.pow(gradients_masked,2))/torch.sum(1-intermediate)
                         loss = loss_grad + loss_l2
@@ -308,7 +308,7 @@ def two_stages_training_loop(num_epochs, optimizer, lamda, model, loss_fn_sum, d
                     loss_batches.append(loss.clone().detach().cpu().numpy())
                     loss_l2_batches.append(loss_l2.clone().detach().cpu().numpy())
                     loss_grad_batches.append(loss_grad.clone().detach().cpu().numpy())
-                    original_images_grad.append(image_gradient_noSqrt(X).clone().detach().cpu().numpy())
+                    original_images_grad.append(color_gradient(X).clone().detach().cpu().numpy())
 
                     if phase=='train':
                         loss.backward()
@@ -378,7 +378,7 @@ def pefect_filter_training_loop(num_epochs, optimizer, lamda, model, loss_fn,
                     loss_batches.append(loss.clone().detach().cpu().numpy())
                     loss_l2_batches.append(loss_l2.clone().detach().cpu().numpy())
                     loss_grad_batches.append(loss_grad.clone().detach().cpu().numpy())
-                    original_images_grad.append(image_gradient_noSqrt(X).clone().detach().cpu().numpy())
+                    original_images_grad.append(image_gradient(X).clone().detach().cpu().numpy())
 
                     if phase == 'train':
                         loss.backward()

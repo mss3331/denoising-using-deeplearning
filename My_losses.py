@@ -9,7 +9,36 @@ def gradMaskLoss_Eq1(images,mask,loss_fn):
     masked_grad = torch.mul(images_grad,1-mask)
     return loss_fn(masked_grad,torch.zeros(images.shape).to(device))
 
+def color_gradient(images,reduction='mean'):
+    device = torch.device('cuda:0')
+    a = np.array([[1, 0, -1], [2, 0, -2], [1, 0, -1]])/4
+    conv1 = nn.Conv2d(1, 1, kernel_size=3, stride=1, padding=1, bias=False)
+    conv1.weight = nn.Parameter(torch.from_numpy(a).float().unsqueeze(0).unsqueeze(0), requires_grad=False)
+    # print(conv1.weight)
+    conv1.to(device)
+    # -----------------------------------------------------------
+    b = np.array([[1, 2, 1], [0, 0, 0], [-1, -2, -1]])/4
+    conv2 = nn.Conv2d(1, 1, kernel_size=3, stride=1, padding=1, bias=False)
+    conv2.weight = nn.Parameter(torch.from_numpy(b).float().unsqueeze(0).unsqueeze(0), requires_grad=False)
+    conv2.to(device)
+    # -----------------------------------------
+    # images.shape = [batch, C, H, W]
+    images_shape = images.shape
+    # images.reshape = [batch*C, 1, H, W]
+    images = images.view(-1, 1, *images_shape[-2:])
 
+    G_x = conv1(images)
+    G_y = conv2(images)
+    G = torch.pow(G_x, 2) + torch.pow(G_y, 2)
+    grad_loss = G.view(*images_shape) #[batch, C, H, W] grad = sqrt(C1+C2+C3)
+    grad_loss = grad_loss.sum(dim=1) #[batch,H,W]
+    print(grad_loss.shape)
+    if reduction=='mean':
+        grad_loss = torch.sum(G) / G.numel()
+    elif reduction=='sum':
+        grad_loss = torch.sum(G)
+
+    return grad_loss
 def image_gradient(images,reduction='mean'):
     device = torch.device('cuda:0')
     a = np.array([[1, 0, -1], [2, 0, -2], [1, 0, -1]])/4
@@ -30,7 +59,7 @@ def image_gradient(images,reduction='mean'):
 
     G_x = conv1(images)
     G_y = conv2(images)
-    G = torch.sqrt(torch.pow(G_x, 2) + torch.pow(G_y, 2)+0.000000000000001)
+    G = torch.sqrt(torch.pow(G_x, 2) + torch.pow(G_y, 2)+0.0000000000001)
     if reduction=='mean':
         grad_loss = torch.sum(G) / (images_shape[0] * images_shape[1] * images_shape[2] * images_shape[3])
     elif reduction=='sum':
