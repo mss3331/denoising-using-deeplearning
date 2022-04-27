@@ -32,7 +32,6 @@ def color_gradient(images,reduction='mean'):
     G = torch.pow(G_x, 2) + torch.pow(G_y, 2)
     grad_loss = G.view(*images_shape) #[batch, C, H, W] grad = sqrt(C1+C2+C3)
     grad_loss = grad_loss.sum(dim=1) #[batch,H,W]
-    print(grad_loss.shape)
     if reduction=='mean':
         grad_loss = torch.sum(G) / G.numel()
     elif reduction=='sum':
