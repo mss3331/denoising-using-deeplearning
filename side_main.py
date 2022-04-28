@@ -24,11 +24,15 @@ from torch.utils.data import DataLoader
 wandb.login(key="38818beaffe50c5403d3f87b288d36d1b38372f8")
 # from prettytable import PrettyTable
 
-
+def repreducibility():
+    torch.manual_seed(0)
+    np.random.seed(0)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
 
 if __name__ == '__main__':
     '''This main is created to do side experiments'''
-
+    repreducibility()
     learning_rate = 0.01
     input_channels = 3
     number_classes = 3  # output channels should be one mask for binary class
