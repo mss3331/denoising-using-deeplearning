@@ -421,8 +421,13 @@ def three_stages_training_loop(num_epochs, optimizer, lamda, model, loss_dic, da
                         loss.backward()
                         optimizer.step()
                 if flag:
-                    show(ypred, X, intermediate, phase, index=100 + epoch, save=True)
-                    flag=False
+                    flag = False
+                    if epoch>=switch_epoch*2:
+                        max, generated_mask = ymask.max(dim=0)
+                        show(ypred, X, generated_mask, phase, index=100 + epoch, save=True)
+                    else:
+                        show(ypred, X, intermediate, phase, index=100 + epoch, save=True)
+
 
                 # update the progress bar
                 pbar.set_postfix({phase+' Epoch': str(epoch)+"/"+str(num_epochs-1),
