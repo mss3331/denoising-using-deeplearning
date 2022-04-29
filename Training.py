@@ -4,8 +4,9 @@ import numpy as np
 from tqdm import tqdm
 from torch import nn
 from torchvision import transforms
+from MedAI_code_segmentation_evaluation import IOU_class01
 from My_losses import *
-
+#TODO: delete the unecessarly model.train after the phase loop
 def training_loop(num_epochs, optimizer, lamda, model, loss_fn, data_loader_dic, device):
     best_val_loss = 100
     for epoch in range(0, num_epochs + 1):
@@ -337,6 +338,122 @@ def two_stages_training_loop(num_epochs, optimizer, lamda, model, loss_fn_sum, d
                        phase+"_L2": np.mean(loss_l2_batches), phase+"_grad": np.mean(loss_grad_batches),
                        phase+'_original_images_grad': np.mean(original_images_grad),"best_val_loss":best_val_loss, phase+"_epoch": epoch},
                       step=epoch)
+def three_stages_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loader_dic, device,switch_epoch):
+    best_val_loss = 1000
+    best_val_iou = 10000
+    loss_fn_sum = loss_dic['generator']
+    for epoch in range(0, num_epochs + 1):
+
+        for phase in data_loader_dic.keys():
+            iou = []
+
+            if phase == 'train':
+                model[0].train()  # Set model to training mode
+                model[1].train()  # Set model to training mode
+            else:
+                model[0].eval()   # Set model to evaluate mode
+                model[1].eval()  # Set model to evaluate mode
+
+            flag = True
+            total_train_images = 0
+            #TODO: the Loss here are normalized using np.mean() to get the average loss across all images. However,
+            #TODO: last epoch may have less images hence, mean is not accurate
+            loss_batches = []
+            loss_l2_batches = []
+            loss_grad_batches = []
+            loss_mask_batches = []
+            iou_batches = []
+            original_images_grad = []
+
+
+
+
+            pbar = tqdm(data_loader_dic[phase], total=len(data_loader_dic[phase]))
+            for X,intermediate, y in pbar:
+                batch_size = len(X)
+                total_train_images += batch_size
+
+
+
+                X = X.to(device).float()
+                intermediate = intermediate.to(device).float() #intermediate is the mask with type of float
+                y = y.to(device) #this is the mask as Boolean
+
+                ypred = model[0](X)
+                if epoch>=switch_epoch*2:
+                    ymask = model[1](ypred)
+
+                optimizer.zero_grad()
+
+                with torch.set_grad_enabled(phase == 'train'):
+
+                    if epoch==switch_epoch: #update the best_val_loss threshold
+                        best_val_loss = 1000
+                    if epoch==switch_epoch*2: #update the best_val_loss threshold for the segmentor
+                        best_val_loss = 1000
+                    if epoch < switch_epoch: # focus on minimizing ‖f-g‖^2
+                        loss_l2 = loss_fn_sum(ypred,X)/X.numel()
+                        loss_grad = color_gradient(ypred)
+                        loss = loss_l2
+                    elif epoch >= switch_epoch and epoch <switch_epoch*2:  # move to stage 2 loss: ‖f-g * mask(polyp)‖^2 + ‖∇g *mask(1-polyp)‖^2
+                        loss_l2 = torch.sum(torch.pow(torch.mul(ypred-X,intermediate),2))/torch.sum(intermediate)
+                        gradients = color_gradient(ypred,'No reduction')
+                        gradients_masked = torch.mul(gradients, 1-intermediate) #consider only background
+                        loss_grad = torch.sum(torch.pow(gradients_masked,2))/torch.sum(1-intermediate)
+                        loss = loss_grad*lamda['grad'] + loss_l2*lamda['l2']
+                    if epoch>=switch_epoch*2:# move to stage 3 loss: ‖f-g * mask(polyp)‖^2 + ‖∇g *mask(1-polyp)‖^2 + BCEWithLoggits
+                        bce = loss_dic['segmentor']
+                        loss_mask = bce(ymask,y)
+                        loss = loss + loss_mask
+                        iou += IOU_class01(y, ymask)
+
+
+
+
+                    loss_batches.append(loss.clone().detach().cpu().numpy())
+                    loss_l2_batches.append(loss_l2.clone().detach().cpu().numpy())
+                    loss_grad_batches.append(loss_grad.clone().detach().cpu().numpy())
+                    loss_mask_batches.append(loss_mask.clone().detach().cpu().numpy())
+                    iou_batches.append(iou)
+                    original_images_grad.append(color_gradient(X).clone().detach().cpu().numpy())
+
+                    if phase=='train':
+                        loss.backward()
+                        optimizer.step()
+                if flag:
+                    show(ypred, X, intermediate, phase, index=100 + epoch, save=True)
+                    flag=False
+
+                # update the progress bar
+                pbar.set_postfix({phase+' Epoch': str(epoch)+"/"+str(num_epochs-1),
+                                  'Loss': np.mean(loss_batches),
+                                  'L2': np.mean(loss_l2_batches),
+                                  'grad': np.mean(loss_grad_batches),
+                                  'BCE_mask': np.mean(loss_mask_batches),
+                                  'iou':np.mean(iou_batches),
+                                  'original_images_grad': np.mean(original_images_grad)
+                                  })
+            if phase=='val':
+                if np.mean(loss_batches) < best_val_loss:
+                    print('best loss={} so far ...'.format(np.mean(loss_batches)))
+                    wandb.run.summary["best_epoch"] = epoch
+                    wandb.run.summary["val_loss"] = np.mean(loss_batches)
+                    best_val_loss = np.mean(loss_batches)
+
+                    print('saving a checkpoint')
+                if np.mean(iou_batches) < best_val_iou:
+                    wandb.run.summary["val_loss"] = np.mean(iou_batches)
+                    best_val_iou = np.mean(iou_batches)
+
+
+
+            wandb.log({phase+"_loss": np.mean(loss_batches),
+                       phase+"_L2": np.mean(loss_l2_batches), phase+"_grad": np.mean(loss_grad_batches),
+                       phase+'_BCE_mask':np.mean(loss_mask_batches),phase+'_iou':np.mean(iou_batches),
+                       phase+'_original_images_grad': np.mean(original_images_grad),"best_val_loss":best_val_loss,
+                       'best_val_iou':best_val_iou ,phase+"_epoch": epoch},
+                      step=epoch)
+
 def pefect_filter_training_loop(num_epochs, optimizer, lamda, model, loss_fn,
                   data_loader_dic, device, switch_epoch):
     best_val_loss = 1000
