@@ -377,7 +377,7 @@ def three_stages_training_loop(num_epochs, optimizer, lamda, model, loss_dic, da
 
                 X = X.to(device).float()
                 intermediate = intermediate.to(device).float() #intermediate is the mask with type of float
-                y = y.to(device) #this is the mask as Boolean
+                y = y.to(device)
 
                 ypred = model[0](X)
                 if epoch>=switch_epoch*2:
@@ -395,17 +395,17 @@ def three_stages_training_loop(num_epochs, optimizer, lamda, model, loss_dic, da
                         loss_l2 = loss_fn_sum(ypred,X)/X.numel()
                         loss_grad = color_gradient(ypred)
                         loss = loss_l2
-                    elif epoch >= switch_epoch and epoch <switch_epoch*2:  # move to stage 2 loss: ‖f-g * mask(polyp)‖^2 + ‖∇g *mask(1-polyp)‖^2
+                    else: #epoch >= switch_epoch and epoch <switch_epoch*2:  # move to stage 2 loss: ‖f-g * mask(polyp)‖^2 + ‖∇g *mask(1-polyp)‖^2
                         loss_l2 = torch.sum(torch.pow(torch.mul(ypred-X,intermediate),2))/torch.sum(intermediate)
                         gradients = color_gradient(ypred,'No reduction')
                         gradients_masked = torch.mul(gradients, 1-intermediate) #consider only background
                         loss_grad = torch.sum(torch.pow(gradients_masked,2))/torch.sum(1-intermediate)
                         loss = loss_grad*lamda['grad'] + loss_l2*lamda['l2']
-                    if epoch>=switch_epoch*2:# move to stage 3 loss: ‖f-g * mask(polyp)‖^2 + ‖∇g *mask(1-polyp)‖^2 + BCEWithLoggits
-                        bce = loss_dic['segmentor']
-                        loss_mask = bce(ymask,y)
-                        loss = loss + loss_mask
-                        iou += IOU_class01(y, ymask)
+                        if epoch>=switch_epoch*2:# move to stage 3 loss: ‖f-g * mask(polyp)‖^2 + ‖∇g *mask(1-polyp)‖^2 + BCEWithLoggits
+                            bce = loss_dic['segmentor']
+                            loss_mask = bce(ymask,y)
+                            loss = loss + loss_mask
+                            iou += IOU_class01(y, ymask)
 
 
 
