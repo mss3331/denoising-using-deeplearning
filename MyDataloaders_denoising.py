@@ -86,7 +86,7 @@ class SegDataset(Dataset):
         mask = y1
         y1 = y1.type(torch.BoolTensor)
         y2 = torch.bitwise_not(y1)
-        y = torch.cat([y2, y1], dim=0)
+        y = torch.cat([y2, y1], dim=0).float()
         mask_dic = {'seg_target': y, 'seg_intermediate': mask}
         # y.squeeze_()
         return mask_dic
