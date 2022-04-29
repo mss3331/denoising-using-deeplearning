@@ -80,7 +80,7 @@ if __name__ == '__main__':
                       dim=2)
     generator = nn.Sequential(generator, nn.Sigmoid())
     segmentor = unet.UNet(in_channels=input_channels,
-                      out_channels=number_classes,
+                      out_channels=2,
                       n_blocks=4,
                       activation='relu',
                       normalization='batch',
