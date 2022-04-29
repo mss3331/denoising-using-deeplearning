@@ -423,7 +423,7 @@ def three_stages_training_loop(num_epochs, optimizer, lamda, model, loss_dic, da
                 if flag:
                     flag = False
                     if epoch>=switch_epoch*2:
-                        max, generated_mask = ymask.max(dim=0)
+                        max, generated_mask = ymask.max(dim=1)
                         generated_mask = generated_mask.unsqueeze(dim=1)
                         show(ypred, X, generated_mask, phase, index=100 + epoch, save=True)
                     else:
