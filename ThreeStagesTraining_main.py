@@ -47,7 +47,7 @@ if __name__ == '__main__':
         root_dir = "/content/CVC-ClinicDB"
         colab_dir = "/content/denoising-using-deeplearning"
     num_epochs = 300
-    batch_size = 15
+    batch_size = 7
     shuffle = False
     lamda = {"l2":1,"grad":10} #L2 and Grad
     print("epochs {} batch size {}".format(num_epochs, batch_size))

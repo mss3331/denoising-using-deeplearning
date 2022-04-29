@@ -429,7 +429,7 @@ def three_stages_training_loop(num_epochs, optimizer, lamda, model, loss_dic, da
                                   'Loss': np.mean(loss_batches),
                                   'L2': np.mean(loss_l2_batches),
                                   'grad': np.mean(loss_grad_batches),
-                                  'BCE_mask': np.mean(loss_mask_batches),
+                                  'BCE_loss': np.mean(loss_mask_batches),
                                   'iou':np.mean(iou_batches),
                                   'original_images_grad': np.mean(original_images_grad)
                                   })
@@ -449,7 +449,7 @@ def three_stages_training_loop(num_epochs, optimizer, lamda, model, loss_dic, da
 
             wandb.log({phase+"_loss": np.mean(loss_batches),
                        phase+"_L2": np.mean(loss_l2_batches), phase+"_grad": np.mean(loss_grad_batches),
-                       phase+'_BCE_mask':np.mean(loss_mask_batches),phase+'_iou':np.mean(iou_batches),
+                       phase+'_BCE_loss':np.mean(loss_mask_batches),phase+'_iou':np.mean(iou_batches),
                        phase+'_original_images_grad': np.mean(original_images_grad),"best_val_loss":best_val_loss,
                        'best_val_iou':best_val_iou ,phase+"_epoch": epoch},
                       step=epoch)
