@@ -89,7 +89,7 @@ def show(generated_imgs, original_imgs,masks, phase, index, save):
         masks = masks.repeat(1,3,1,1)
     if not generated_imgs.shape == original_imgs.shape:
         generated_imgs.unsqueeze_(1) # (N,H,W) ==> (N,1,H,W)
-        generated_imgs.repeat(1,3,1,1) # (N,1,H,W) ==> (N,3,H,W)
+        generated_imgs=generated_imgs.repeat(1,3,1,1) # (N,1,H,W) ==> (N,3,H,W)
 
     toPIL = transforms.ToPILImage()
     for i, img in enumerate(generated_imgs):
@@ -516,7 +516,7 @@ def literature_training_loop(num_epochs, optimizer, lamda, model, BCE, data_load
                     flag = False
                     max, generated_mask = ymask.max(dim=1)
                     generated_mask = generated_mask.unsqueeze(dim=1)
-                    show(y, X, generated_mask, phase, index=100 + epoch, save=True)
+                    show(y[:,1,:,:], X, generated_mask, phase, index=100 + epoch, save=True)
 
                 # update the progress bar
                 pbar.set_postfix({phase + ' Epoch': str(epoch) + "/" + str(num_epochs - 1),
