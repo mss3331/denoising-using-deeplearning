@@ -7,6 +7,7 @@ from torchvision import transforms
 from MedAI_code_segmentation_evaluation import IOU_class01
 from My_losses import *
 #TODO: delete the unecessarly model.train after the phase loop
+# TODO: Implement saving a checkpoint
 def training_loop(num_epochs, optimizer, lamda, model, loss_fn, data_loader_dic, device):
     best_val_loss = 100
     for epoch in range(0, num_epochs + 1):
