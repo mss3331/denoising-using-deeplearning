@@ -70,11 +70,11 @@ if __name__ == '__main__':
     # ************** modify for full experiment *************
     # load_to_RAM = True
 
-    resize_factor = None
-    target_img_size = (288, 384)
+    diminsh_factor = 1.5
+    target_img_size = (288 // diminsh_factor, 384 // diminsh_factor)
     train_val_ratio = 0.5
 
-    print("resize_factor={} and image size={}".format(resize_factor, target_img_size))
+    print("resize_factor={} and image size={}".format(diminsh_factor, target_img_size))
     # ************** modify for full experiment *************
     # [SegNet, SegNetGRU, SegNetGRU_Symmetric, SegNetGRU_Symmetric_columns,
     # SegNetGRU_Symmetric_columns_shared_EncDec, SegNetGRU_Symmetric_columns_UltimateShare,
