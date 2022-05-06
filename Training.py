@@ -594,12 +594,14 @@ def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loa
 
 
 def literature_training_loop(num_epochs, optimizer, lamda, model, BCE, data_loader_dic, device):
-    best_val_loss = 1000
-    best_val_iou = 0
+    best_loss = {k: 1000 for k in data_loader_dic.keys()}
+    best_iou = {k: 0 for k in data_loader_dic.keys()}
+    best_iou_epoch = -1
     for epoch in range(0, num_epochs + 1):
 
         for phase in data_loader_dic.keys():
-
+            if phase == 'test' and best_iou_epoch!=epoch: #skip testing if no better iou val achieved
+                continue
             if phase == 'train':
                 model.train()  # Set model to training mode
             else:
@@ -647,26 +649,32 @@ def literature_training_loop(num_epochs, optimizer, lamda, model, BCE, data_load
                 pbar.set_postfix({phase + ' Epoch': str(epoch) + "/" + str(num_epochs - 1),
                                   'Loss': np.mean(loss_batches),
                                   'iou': np.mean(iou_batches),
-                                  'best_val_loss': best_val_loss,
-                                  'best_val_iou': best_val_iou
+                                  'best_val_loss': best_loss['val'],
+                                  'best_val_iou': best_iou['val'],
+                                  'best_test_loss': best_loss['test'],
+                                  'best_test_iou': best_iou['test']
                                   })
-            if phase == 'val':
-                if np.mean(loss_batches) < best_val_loss:
+            if phase != 'train':
+                if np.mean(loss_batches) < best_loss[phase]:
                     print('best loss={} so far ...'.format(np.mean(loss_batches)))
-                    wandb.run.summary["best_epoch_loss"] = epoch
-                    wandb.run.summary["best_val_loss"] = np.mean(loss_batches)
-                    best_val_loss = np.mean(loss_batches)
-                    print('saving a checkpoint')
-                if np.mean(iou_batches) > best_val_iou:
-                    wandb.run.summary["best_epoch_iou"] = epoch
-                    wandb.run.summary["best_val_iou"] = np.mean(iou_batches)
-                    best_val_iou = np.mean(iou_batches)
-                    print('best val_iou')
+                    wandb.run.summary["best_{}_epoch_loss".format(phase)] = epoch
+                    wandb.run.summary["best_{}_loss".format(phase)] = np.mean(loss_batches)
+                    best_loss[phase] = np.mean(loss_batches)
+                    if phase == 'val':
+                        print('saving a checkpoint')
+                if np.mean(iou_batches) > best_iou[phase]:
+                    wandb.run.summary["best_{}_epoch_iou".format(phase)] = epoch
+                    wandb.run.summary["best_{}_iou".format(phase)] = np.mean(iou_batches)
+                    best_iou[phase] = np.mean(iou_batches)
+                    if phase == 'val':
+                        best_iou_epoch = epoch
+                        print('best val_iou')
+                        print('testing on a test set....\n')
 
             wandb.log({phase + "_loss": np.mean(loss_batches),
                        phase + '_iou': np.mean(iou_batches),
-                       "best_val_loss": best_val_loss,
-                       'best_val_iou': best_val_iou, phase + "_epoch": epoch},
+                       "best_val_loss": best_loss['val'],
+                       'best_val_iou': best_iou['val'], phase + "_epoch": epoch},
                       step=epoch)
 def pefect_filter_training_loop(num_epochs, optimizer, lamda, model, loss_fn,
                   data_loader_dic, device, switch_epoch):

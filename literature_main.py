@@ -30,9 +30,25 @@ def repreducibility():
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
 
+def initializWandb():
+    wandbproject_name = "denoising"
+    wandb.init(
+        project=wandbproject_name,
+        entity="mss3331",
+        name=experiment_name,
+        # Track hyperparameters and run metadata
+        config={
+            "learning_rate": learning_rate,
+            "optimizer": "Adam",
+            "architecture": model_name,
+            "batch_size": batch_size,
+            "lamda": lamda,
+            "num_epochs": num_epochs,
+            "dataset": root_dir.split("/")[-1], })
 if __name__ == '__main__':
     '''This main is created to do side experiments'''
     repreducibility()
+    experiment_name=""
     learning_rate = 0.01
     input_channels = 3
     number_classes = 2  # output channels should be one mask for binary class
@@ -50,12 +66,12 @@ if __name__ == '__main__':
     batch_size = 7
     shuffle = False
     lamda = {"l2":1,"grad":10} #L2 and Grad
-    print("epochs {} batch size {}".format(num_epochs, batch_size))
+
     # ************** modify for full experiment *************
     # load_to_RAM = True
 
-    resize_factor = None
-    target_img_size = (288, 384)
+    resize_factor = 0.75
+    target_img_size = (int(288 * resize_factor), int(384 * resize_factor))
     train_val_ratio = 0.5
 
     print("resize_factor={} and image size={}".format(resize_factor, target_img_size))
@@ -78,12 +94,9 @@ if __name__ == '__main__':
                       normalization='batch',
                       conv_mode='same',
                       dim=2)
+    initializWandb()
+    print("epochs {} batch size {}".format(num_epochs, batch_size))
 
-    # image_transform = transforms.Compose([
-    #     transforms.Resize(target_img_size),  # Resizing the image as the VGG only take 224 x 244 as input size
-    #     transforms.ToTensor()])
-    # train_dataset = datasets.ImageFolder(root_dir, transform=image_transform)
-    # trainLoader = DataLoader(train_dataset, batch_size=batch_size)
     dataset_info = [(root_dir, child_dir, imageDir, maskDir, target_img_size)]#,
                     #("/content/trainData_EndoCV2021_5_Feb2021","data_C2","images_C2","mask_C2",target_img_size)]
     dataloder_info = (train_val_ratio,batch_size, shuffle)
@@ -93,9 +106,6 @@ if __name__ == '__main__':
     dataloder_info = (0.01,batch_size, shuffle)
     Dataloaders_test_dic = getDataloadersDic(dataset_info, dataloder_info)
     Dataloaders_dic['test']=Dataloaders_test_dic['val']
-    # print(trainDataset[1])
-    # exit(0)
-    # trainLoader = DataLoader(trainDataset, batch_size = batchSize, shuffle=False, drop_last=False,worker_init_fn=seed_worker)
 
     print("training images:", len(Dataloaders_dic['train'].dataset))
     print("val images:", len(Dataloaders_dic['val'].dataset))
@@ -114,29 +124,12 @@ if __name__ == '__main__':
 
     model = model.to(device)
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
-    # loss_fn = nn.BCELoss()
-    # weight = torch.tensor([0.2, 0.8]).to(device)
-    # loss_fn = nn.CrossEntropyLoss(weight) this is the loss of the accepted paper
+
     loss_fn = nn.BCEWithLogitsLoss()  # this is the handseg loss
 
     # call the training loop,
     # make sure to pass correct checkpoint path, or none if starting with the training
     start = time.time()
-    wandbproject_name = "denoising"
-    wandb.init(
-        project=wandbproject_name,
-        entity="mss3331",
-        name="Denoising_testing_Exp4_TwoStagestraining_Mechanism_colorGrad",
-        # Track hyperparameters and run metadata
-        config={
-            "learning_rate": learning_rate,
-            "optimizer": "Adam",
-            "architecture": model_name,
-            "batch_size": batch_size,
-            "lamda":lamda,
-            "num_epochs": num_epochs,
-            "dataset": root_dir.split("/")[-1], })
-    Dataloaders_dic.pop('test')
 
     literature_training_loop(num_epochs, optimizer, lamda, model, loss_fn,
                   Dataloaders_dic, device)
