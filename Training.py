@@ -513,6 +513,7 @@ def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loa
 
                 with torch.set_grad_enabled(phase == 'train'):
                     loss_mask = torch.zeros((1)).int()
+                    iou=0
                     #update loss threshold for stage 2 and 3
                     if epoch == switch_epoch:  # update the best_val_loss threshold
                         best_loss['val'] = 1000
