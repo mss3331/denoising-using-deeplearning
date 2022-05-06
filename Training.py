@@ -564,7 +564,9 @@ def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loa
                                   'iou': np.mean(iou_batches),
                                   'original_images_grad': np.mean(original_images_grad),
                                   'best_val_loss': best_loss['val'],
-                                  'best_val_iou': best_iou['val']
+                                  'best_val_iou': best_iou['val'],
+                                  'best_test_loss': best_loss['test'],
+                                  'best_test_iou': best_iou['test'],
                                   })
             if phase != 'train':
                 if np.mean(loss_batches) < best_loss[phase]:
