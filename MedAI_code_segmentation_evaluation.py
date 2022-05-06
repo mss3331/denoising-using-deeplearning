@@ -136,8 +136,8 @@ def IOU_class01(target, predicted,count=0):
     # if target.dim() != 3:
     #     print("target has dim", target.dim(), ", Must be 4.")
     #     return
-    target = target.detach().cpu()
-    predicted = predicted.detach().cpu()  # simgoid is implecitly applied with calculating the loss
+    target = target.clone().detach().cpu()
+    predicted = predicted.clone().detach().cpu()  # simgoid is implecitly applied with calculating the loss
 
     # if count%80==0:
     #     show_image(target.numpy(),predicted.numpy())
@@ -149,15 +149,15 @@ def IOU_class01(target, predicted,count=0):
     iou_list = []
     # for each image in the batch
     for i in range(target.shape[0]):
-        target_arr = target[i,:, :, :].clone().detach().cpu().numpy().argmax(0)
-        predicted_arr = predicted[i, :, :, :].clone().detach().cpu().numpy().argmax(0)
+        target_arr = target[i,:, :, :].numpy().argmax(0)
+        predicted_arr = predicted[i, :, :, :].numpy().argmax(0)
         iou_score_1 =  _iou(target_arr,predicted_arr)
         iou_score_0 = _iou(1-target_arr, 1-predicted_arr)
 
         iou_list.append((iou_score_0+iou_score_1)/2)
 
     # miou = iousum / target.shape[0]
-    return iou_list
+    return np.mean(iou_list)
 
 def _iou(target_arr,predicted_arr):
     intersection = np.logical_and(target_arr, predicted_arr).sum()

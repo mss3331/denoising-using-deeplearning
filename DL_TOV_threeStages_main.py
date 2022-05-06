@@ -24,10 +24,11 @@ from torch.utils.data import DataLoader
 wandb.login(key="38818beaffe50c5403d3f87b288d36d1b38372f8")
 # from prettytable import PrettyTable
 def initializWandb():
+    wandbproject_name = "denoising"
     wandb.init(
         project=wandbproject_name,
         entity="mss3331",
-        name="Denoising_testing_Exp1_ThreeStagestraining",
+        name=experiment_name,
         # Track hyperparameters and run metadata
         config={
             "learning_rate": learning_rate,
@@ -47,7 +48,7 @@ def repreducibility():
 if __name__ == '__main__':
     '''This main is created to do side experiments'''
     repreducibility()
-    wandbproject_name = "DL_TOV_threeStages_"
+    experiment_name='Denoising_DLTOV_ThreeStagestraining_Exp1_testingOnTestSet'
     learning_rate = 0.01
     input_channels = 3
     number_classes = 3  # output channels should be one mask for binary class
