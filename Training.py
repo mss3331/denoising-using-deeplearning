@@ -529,7 +529,9 @@ def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loa
                         gradients = color_gradient(generated_images, 'No reduction')
                         gradients_masked = torch.mul(gradients, 1 - intermediate)  # consider only background
                         loss_grad = torch.sum(torch.pow(gradients_masked, 2)) / torch.sum(1 - intermediate)
-                        loss = loss_grad * lamda['grad'] + loss_l2 * lamda['l2']
+                        if epoch >= switch_epoch[1]:#increse the polyp reconstruction loss to balance it with seg loss
+                            loss_l2 = loss_l2 * lamda['l2']
+                        loss = loss_grad * lamda['grad'] + loss_l2
                         if epoch >= switch_epoch[1]:  # move to stage 3 loss: ‖f-g * mask(polyp)‖^2 + ‖∇g *mask(1-polyp)‖^2 + BCEWithLoggits
                             bce = loss_dic['segmentor']
                             loss_mask = bce(generated_masks, original_masks)
