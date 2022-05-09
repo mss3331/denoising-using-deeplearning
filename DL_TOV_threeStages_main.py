@@ -1,5 +1,6 @@
 #9064466c4a4f16db52c1672e03ee3c52060a24e4 token
 import torch.optim as optim
+from requests import get
 # import matplotlib.pyplot as plt
 import wandb
 import random
@@ -48,7 +49,8 @@ def repreducibility():
 if __name__ == '__main__':
     '''This main is created to do side experiments'''
     repreducibility()
-    experiment_name='Denoising_DLTOV_ThreeStagestraining_Exp1_testingOnTestSet'
+
+    experiment_name=get('http://172.28.0.2:9000/api/sessions').json()[0]['name'].split('.')[0]
     learning_rate = 0.01
     input_channels = 3
     number_classes = 3  # output channels should be one mask for binary class
@@ -105,6 +107,7 @@ if __name__ == '__main__':
     model = nn.ModuleList([generator, segmentor])
     # Start WandB recording
     initializWandb()
+    print("Experiment name:",experiment_name)
     print("epochs {} batch size {}".format(num_epochs, batch_size))
 
     dataset_info = [(root_dir, child_dir, imageDir, maskDir, target_img_size)]#,
