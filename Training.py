@@ -506,7 +506,7 @@ def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loa
                 original_masks = original_masks.to(device)
 
                 generated_images = model[0](X)
-                if epoch >= switch_epoch * 2:
+                if epoch >= switch_epoch[1]:
                     generated_masks = model[1](generated_images)
 
                 optimizer.zero_grad()
@@ -515,12 +515,12 @@ def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loa
                     loss_mask = torch.zeros((1)).int()
                     iou=0
                     #update loss threshold for stage 2 and 3
-                    if epoch == switch_epoch:  # update the best_val_loss threshold
+                    if epoch == switch_epoch[0]:  # update the best_val_loss threshold
                         best_loss['val'] = 1000
-                    if epoch == switch_epoch * 2:  # update the best_val_loss threshold for the segmentor
+                    if epoch == switch_epoch[1]:  # update the best_val_loss threshold for the segmentor
                         best_loss['val'] = 1000
 
-                    if epoch < switch_epoch:  # focus on minimizing ‖f-g‖^2
+                    if epoch < switch_epoch[0]:  # focus on minimizing ‖f-g‖^2
                         loss_l2 = loss_fn_sum(generated_images, X) / X.numel()
                         loss_grad = color_gradient(generated_images)
                         loss = loss_l2
@@ -530,7 +530,7 @@ def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loa
                         gradients_masked = torch.mul(gradients, 1 - intermediate)  # consider only background
                         loss_grad = torch.sum(torch.pow(gradients_masked, 2)) / torch.sum(1 - intermediate)
                         loss = loss_grad * lamda['grad'] + loss_l2 * lamda['l2']
-                        if epoch >= switch_epoch * 2:  # move to stage 3 loss: ‖f-g * mask(polyp)‖^2 + ‖∇g *mask(1-polyp)‖^2 + BCEWithLoggits
+                        if epoch >= switch_epoch[1]:  # move to stage 3 loss: ‖f-g * mask(polyp)‖^2 + ‖∇g *mask(1-polyp)‖^2 + BCEWithLoggits
                             bce = loss_dic['segmentor']
                             loss_mask = bce(generated_masks, original_masks)
                             loss = loss + loss_mask
@@ -548,7 +548,7 @@ def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loa
                         optimizer.step()
                 if flag:  # this flag
                     flag = False
-                    if epoch >= switch_epoch * 2:
+                    if epoch >= switch_epoch[1]:
                         max, generated_mask = generated_masks.max(dim=1)
                         generated_mask = generated_mask.unsqueeze(dim=1)
                         show(generated_images, X, generated_mask, phase, index=100 + epoch, save=True)

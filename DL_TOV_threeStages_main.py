@@ -52,7 +52,7 @@ if __name__ == '__main__':
     learning_rate = 0.01
     input_channels = 3
     number_classes = 3  # output channels should be one mask for binary class
-    switch_epoch = 50 # when to switch to the next training stage?
+    switch_epoch = [50,150] # when to switch to the next training stage?
     run_in_colab = True
     root_dir = r"E:\Databases\dummyDataset\train"
     child_dir = "data_C1"
