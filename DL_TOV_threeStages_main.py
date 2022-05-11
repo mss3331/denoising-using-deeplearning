@@ -88,7 +88,7 @@ if __name__ == '__main__':
     # Deeplabv3_GRU_CombineChannels_resnet50, Deeplabv3_GRU_ASPP_CombineChannels_resnet50, Deeplabv3_LSTM_resnet50]
     ########################### unet model #####################################################
     # [unit.UNET]
-    model_name = "unet"
+    model_name = "unet-proposed"
     generator = unet.UNet(in_channels=input_channels,
                       out_channels=number_classes,
                       n_blocks=4,
@@ -140,7 +140,7 @@ if __name__ == '__main__':
     start = time.time()
 
     Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_fn,
-                  Dataloaders_dic, device, switch_epoch)
+                  Dataloaders_dic, device, switch_epoch,colab_dir, model_name)
 
     wandb.save(colab_dir + '/*.py')
     wandb.save(colab_dir + '/results/*')
