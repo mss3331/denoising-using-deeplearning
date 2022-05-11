@@ -82,6 +82,28 @@ def training_loop(num_epochs, optimizer, lamda, model, loss_fn, data_loader_dic,
                        phase+'_original_images_grad': np.mean(original_images_grad),"best_val_loss":best_val_loss, phase+"_epoch": epoch},
                       step=epoch)
 
+def show(generated_images, X, generated_mask,true_mask, phase, index, save):
+    original_imgs = X
+    if not generated_mask.shape == original_imgs.shape:
+        generated_mask = generated_mask.repeat(1, 3, 1, 1)
+    if not true_mask.shape == original_imgs.shape:
+        true_mask = true_mask.repeat(1, 3, 1, 1)
+    if not generated_images.shape == original_imgs.shape:
+        generated_images.unsqueeze_(1)  # (N,H,W) ==> (N,1,H,W)
+        generated_images = generated_images.repeat(1, 3, 1, 1)  # (N,1,H,W) ==> (N,3,H,W)
+
+    toPIL = transforms.ToPILImage()
+    for i, img in enumerate(generated_images):
+        if (i == 5): return
+        generated_img = img.clone().detach().cpu()
+        original_img = original_imgs[i].clone().detach().cpu()
+        mask_img = generated_mask[i].clone().detach().cpu()
+        true_mask_img = true_mask[i].clone().detach().cpu()
+        imgs_cat = torch.cat((original_img, generated_img), 2)
+        masks_cat = torch.cat((true_mask_img, mask_img), 2)
+        img = torch.cat((imgs_cat, masks_cat), 1)
+        img = toPIL(img)  # .numpy().transpose((1, 2, 0))
+        img.save('./generatedImages_' + phase + '/' + str(index) + '_' + str(i) + 'generated.png')
 
 def show(generated_imgs, original_imgs,masks, phase, index, save):
     # if not isinstance(torch_img,list):
@@ -503,7 +525,7 @@ def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loa
 
                 X = X.to(device).float()
                 intermediate = intermediate.to(device).float()  # intermediate is the mask with type of float
-                original_masks = original_masks.to(device)
+                original_masks = original_masks.to(device)#this is 2 channels mask
 
                 generated_images = model[0](X)
                 if epoch >= switch_epoch[1]:
@@ -551,12 +573,15 @@ def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loa
                         optimizer.step()
                 if flag:  # this flag
                     flag = False
-                    if epoch >= switch_epoch[1]:
+                    true_mask = intermediate
+                    true_mask = true_mask.unsqueeze(dim=1)
+                    if epoch >= switch_epoch[1]:#stage 3
                         max, generated_mask = generated_masks.max(dim=1)
                         generated_mask = generated_mask.unsqueeze(dim=1)
-                        show(generated_images, X, generated_mask, phase, index=100 + epoch, save=True)
-                    else:
-                        show(generated_images, X, intermediate, phase, index=100 + epoch, save=True)
+                        show(generated_images, X, generated_mask,true_mask, phase, index=100 + epoch, save=True)
+                    else: #stage 1 and 2
+                        generated_mask = torch.zeros(generated_images.shape)
+                        show(generated_images, X, generated_mask,true_mask, phase, index=100 + epoch, save=True)
 
                 # update the progress bar
                 pbar.set_postfix({phase + ' Epoch': str(epoch) + "/" + str(num_epochs - 1),
