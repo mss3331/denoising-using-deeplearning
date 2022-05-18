@@ -544,8 +544,9 @@ def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loa
                 original_masks = original_masks.to(device)#this is 2 channels mask
 
                 generated_images = model[0](X)
+                generated_X = generated_images.clone().detach()
                 if epoch >= switch_epoch[1]:
-                    generated_masks = model[1](generated_images)
+                    generated_masks = model[1](generated_X)
 
                 optimizer.zero_grad()
 
