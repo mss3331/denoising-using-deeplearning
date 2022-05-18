@@ -842,7 +842,7 @@ def printCheckpoint(checkpoint):
         'MeanIOU test': test_mIOU,
         'MeanIOU val': val_mIOU'''
     for key,value in checkpoint.items():
-        if key=='state_dict':
+        if key.find('state')>=0:
             continue
         print(key,":",value)
     return checkpoint['state_dict']
