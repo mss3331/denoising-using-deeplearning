@@ -851,16 +851,19 @@ def Dl_TOV_inference_loop(num_epochs, optimizer, lamda, model, loss_dic, data_lo
     best_iou = {k: 0 for k in data_loader_dic.keys()}
     best_iou_epoch = -1
     loss_fn_sum = loss_dic['generator']
-    if checkpoint:# print and load model's checkpoint performance
-        state_dict = printCheckpoint(checkpoint)
-        model.load_state_dict(state_dict)
-
     for epoch in range(0, num_epochs + 1):
 
         for phase in data_loader_dic.keys():
-            model.eval()  # Set model to evaluate mode
+            if phase == 'test' and best_iou_epoch != epoch:  # skip testing if no better iou val achieved
+                continue
+            if phase == 'train':
+                model[0].train()  # Set model to training mode
+                model[1].train()  # Set model to training mode
+            else:
+                model[0].eval()  # Set model to evaluate mode
+                model[1].eval()  # Set model to evaluate mode
 
-            flag = True #flag for showing first batch
+            flag = True  # flag for showing first batch
             total_train_images = 0
             # TODO: the Loss here are normalized using np.mean() to get the average loss across all images. However,
             # TODO: last epoch may have less images hence, mean is not accurate
@@ -878,7 +881,7 @@ def Dl_TOV_inference_loop(num_epochs, optimizer, lamda, model, loss_dic, data_lo
 
                 X = X.to(device).float()
                 intermediate = intermediate.to(device).float()  # intermediate is the mask with type of float
-                original_masks = original_masks.to(device)
+                original_masks = original_masks.to(device)  # this is 2 channels mask
 
                 generated_images = model[0](X)
                 generated_masks = model[1](generated_images)
@@ -887,18 +890,17 @@ def Dl_TOV_inference_loop(num_epochs, optimizer, lamda, model, loss_dic, data_lo
 
                 with torch.set_grad_enabled(phase == 'train'):
                     loss_mask = torch.zeros((1)).int()
-                    iou=0
-
-                    # loss: ‖f-g * mask(polyp)‖^2 + ‖∇g *mask(1-polyp)‖^2
-                    loss_l2 = torch.sum(torch.pow(torch.mul(generated_images - X, intermediate), 2)) / torch.sum(intermediate)
+                    iou = 0
+                         # move to stage 2 loss: ‖f-g * mask(polyp)‖^2 + ‖∇g *mask(1-polyp)‖^2
+                    loss_l2 = torch.sum(torch.pow(torch.mul(generated_images - X, intermediate), 2)) / torch.sum(
+                        intermediate)
                     gradients = color_gradient(generated_images, 'No reduction')
                     gradients_masked = torch.mul(gradients, 1 - intermediate)  # consider only background
                     loss_grad = torch.sum(torch.pow(gradients_masked, 2)) / torch.sum(1 - intermediate)
-                    loss = loss_grad * lamda['grad'] + loss_l2 * lamda['l2']
-                    # move to stage 3 loss: ‖f-g * mask(polyp)‖^2 + ‖∇g *mask(1-polyp)‖^2 + BCEWithLoggits
+                    #stage 3 loss: ‖f-g * mask(polyp)‖^2 + ‖∇g *mask(1-polyp)‖^2 + BCEWithLoggits
                     bce = loss_dic['segmentor']
                     loss_mask = bce(generated_masks, original_masks)
-                    loss = loss + loss_mask
+                    loss = loss_grad * lamda['grad'] + loss_l2 * lamda['l2'] + loss_mask
                     iou = IOU_class01(original_masks, generated_masks)
 
                     loss_batches.append(loss.clone().detach().cpu().numpy())
@@ -913,9 +915,10 @@ def Dl_TOV_inference_loop(num_epochs, optimizer, lamda, model, loss_dic, data_lo
                         optimizer.step()
                 if flag:  # this flag
                     flag = False
+                    true_mask = intermediate
                     max, generated_mask = generated_masks.max(dim=1)
                     generated_mask = generated_mask.unsqueeze(dim=1)
-                    show(generated_images, X, generated_mask, phase, index=100 + epoch, save=True)
+                    show2(generated_images, X, generated_mask, true_mask, phase, index=100 + epoch, save=True)
 
 
                 # update the progress bar
@@ -933,17 +936,17 @@ def Dl_TOV_inference_loop(num_epochs, optimizer, lamda, model, loss_dic, data_lo
                                   })
             if phase != 'train':
                 if np.mean(loss_batches) < best_loss[phase]:
-                    print('best {} loss={} so far ...'.format(phase,np.mean(loss_batches)))
+                    print('best {} loss={} so far ...'.format(phase, np.mean(loss_batches)))
                     wandb.run.summary["best_{}_loss_epoch".format(phase)] = epoch
                     wandb.run.summary["best_{}_loss".format(phase)] = np.mean(loss_batches)
                     best_loss[phase] = np.mean(loss_batches)
-                    if phase=='val':
-                        print('saving a checkpoint')
+                    if phase == 'val':
+                        print('better validation loss')
                 if np.mean(iou_batches) > best_iou[phase]:
                     wandb.run.summary["best_{}_iou".format(phase)] = np.mean(iou_batches)
                     wandb.run.summary["best_{}_iou_epoch".format(phase)] = epoch
                     best_iou[phase] = np.mean(iou_batches)
-                    if phase=='val':
+                    if phase == 'val':
                         best_iou_epoch = epoch
                         print('best val_iou')
                         print('testing on a test set....\n')
@@ -951,6 +954,7 @@ def Dl_TOV_inference_loop(num_epochs, optimizer, lamda, model, loss_dic, data_lo
             wandb.log({phase + "_loss": np.mean(loss_batches),
                        phase + "_L2": np.mean(loss_l2_batches), phase + "_grad": np.mean(loss_grad_batches),
                        phase + '_BCE_loss': np.mean(loss_mask_batches), phase + '_iou': np.mean(iou_batches),
-                       phase + '_original_images_grad': np.mean(original_images_grad), "best_val_loss": best_loss['val'],
+                       phase + '_original_images_grad': np.mean(original_images_grad),
+                       "best_val_loss": best_loss['val'],
                        'best_val_iou': best_iou['val'], phase + "_epoch": epoch},
                       step=epoch)

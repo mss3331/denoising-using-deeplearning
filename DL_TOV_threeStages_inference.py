@@ -1,5 +1,6 @@
 #9064466c4a4f16db52c1672e03ee3c52060a24e4 token
 import torch.optim as optim
+from requests import get
 # import matplotlib.pyplot as plt
 import wandb
 import random
@@ -48,11 +49,12 @@ def repreducibility():
 if __name__ == '__main__':
     '''This main is created to do side experiments'''
     repreducibility()
-    experiment_name='Denoising_DLTOV_ThreeStagestraining_Exp1_testingOnTestSet'
+
+    experiment_name=get('http://172.28.0.2:9000/api/sessions').json()[0]['name'].split('.')[0]
     learning_rate = 0.01
     input_channels = 3
     number_classes = 3  # output channels should be one mask for binary class
-    switch_epoch = 50 # when to switch to the next training stage?
+    switch_epoch = [50,150] # when to switch to the next training stage?
     run_in_colab = True
     root_dir = r"E:\Databases\dummyDataset\train"
     child_dir = "data_C1"
@@ -62,7 +64,7 @@ if __name__ == '__main__':
     if run_in_colab:
         root_dir = "/content/CVC-ClinicDB"
         colab_dir = "/content/denoising-using-deeplearning"
-    num_epochs = 1
+    num_epochs = 300
     batch_size = 7
     shuffle = False
     lamda = {"l2":20,"grad":20} #L2 and Grad
@@ -105,6 +107,7 @@ if __name__ == '__main__':
     model = nn.ModuleList([generator, segmentor])
     # Start WandB recording
     initializWandb()
+    print("Experiment name:",experiment_name)
     print("epochs {} batch size {}".format(num_epochs, batch_size))
 
     dataset_info = [(root_dir, child_dir, imageDir, maskDir, target_img_size)]#,
@@ -138,7 +141,7 @@ if __name__ == '__main__':
     checkpoint = torch.load('./denoising-using-deeplearning/checkpoints/highest_IOU_{}.pt'.format(model_name))
     Dataloaders_dic.pop('train')
     Dl_TOV_inference_loop(num_epochs, optimizer, lamda, model, loss_fn,
-                  Dataloaders_dic, device, checkpoint)
+                  Dataloaders_dic, device, switch_epoch,colab_dir, model_name)
 
     wandb.save(colab_dir + '/*.py')
     wandb.save(colab_dir + '/results/*')
