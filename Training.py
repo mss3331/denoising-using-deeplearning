@@ -627,12 +627,12 @@ def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loa
                         best_iou_epoch = epoch
                         print('best val_iou')
                         print('testing on a test set....\n')
-                    if phase=='test':#if we reach inside this if, it means we achieved a better val iou
-                        print('saving a checkpoint')
-                        saving_checkpoint(epoch, model, optimizer,
-                                          best_loss['val'], best_loss['test'],
-                                          best_iou['val'], best_iou['test'],
-                                          colab_dir, model_name)
+                if phase=='test':#if we reach inside this, it means we achieved a better val iou
+                    print('saving a checkpoint')
+                    saving_checkpoint(epoch, model, optimizer,
+                                      best_loss['val'], best_loss['test'],
+                                      best_iou['val'], best_iou['test'],
+                                      colab_dir, model_name)
 
             wandb.log({phase + "_loss": np.mean(loss_batches),
                        phase + "_L2": np.mean(loss_l2_batches), phase + "_grad": np.mean(loss_grad_batches),
