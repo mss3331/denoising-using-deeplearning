@@ -67,7 +67,7 @@ if __name__ == '__main__':
     num_epochs = 300
     batch_size = 7
     shuffle = False
-    lamda = {"l2":20,"grad":20} #L2 and Grad
+    lamda = {"l2":20,"grad":10} #L2 and Grad
 
     # ************** modify for full experiment *************
     # load_to_RAM = True
@@ -141,7 +141,7 @@ if __name__ == '__main__':
     checkpoint = torch.load('./denoising-using-deeplearning/checkpoints/highest_IOU_{}.pt'.format(model_name))
     Dataloaders_dic.pop('train')
     Dl_TOV_inference_loop(num_epochs, optimizer, lamda, model, loss_fn,
-                  Dataloaders_dic, device, switch_epoch,colab_dir, model_name)
+                  Dataloaders_dic, device, checkpoint)
 
     wandb.save(colab_dir + '/*.py')
     wandb.save(colab_dir + '/results/*')
