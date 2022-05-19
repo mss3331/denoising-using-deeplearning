@@ -624,6 +624,7 @@ def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loa
                     wandb.run.summary["best_{}_iou".format(phase)] = np.mean(iou_batches)
                     wandb.run.summary["best_{}_iou_epoch".format(phase)] = epoch
                     best_iou[phase] = np.mean(iou_batches)
+                    best_loss[phase] = np.mean(loss_batches)
                     if phase=='val':
                         best_iou_epoch = epoch
                         print('best val_iou')
