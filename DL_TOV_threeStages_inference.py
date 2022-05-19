@@ -109,13 +109,13 @@ if __name__ == '__main__':
     initializWandb()
     print("Experiment name:",experiment_name)
     print("epochs {} batch size {}".format(num_epochs, batch_size))
-
-    dataset_info = [(root_dir, child_dir, imageDir, maskDir, target_img_size)]#,
+    augmentation = None
+    dataset_info = [(root_dir, child_dir, imageDir, maskDir, target_img_size,augmentation)]#,
                     #("/content/trainData_EndoCV2021_5_Feb2021","data_C2","images_C2","mask_C2",target_img_size)]
     dataloder_info = (train_val_ratio,batch_size, shuffle)
     Dataloaders_dic = getDataloadersDic(dataset_info, dataloder_info)
 
-    dataset_info = ("/content/trainData_EndoCV2021_5_Feb2021", child_dir, imageDir, maskDir, target_img_size)
+    dataset_info = ("/content/trainData_EndoCV2021_5_Feb2021", child_dir, imageDir, maskDir, target_img_size,augmentation)
     dataloder_info = (0.01,batch_size, shuffle) # from 0:(0.01*datasize) will be for val the rest for test
     Dataloaders_test_dic = getDataloadersDic(dataset_info, dataloder_info)
     Dataloaders_dic['test']=Dataloaders_test_dic['val']
