@@ -98,7 +98,7 @@ def training_loop(num_epochs, optimizer, lamda, model, loss_fn, data_loader_dic,
                        phase+'_original_images_grad': np.mean(original_images_grad),"best_val_loss":best_val_loss, phase+"_epoch": epoch},
                       step=epoch)
 
-def show2(generated_images, X, generated_mask,true_mask, phase, index, save):
+def show2(generated_images, X, generated_mask,true_mask, phase, index, save,limit=5):
     original_imgs = X
     if not generated_mask.shape == original_imgs.shape:
         generated_mask = generated_mask.repeat(1, 3, 1, 1)
@@ -110,7 +110,7 @@ def show2(generated_images, X, generated_mask,true_mask, phase, index, save):
 
     toPIL = transforms.ToPILImage()
     for i, img in enumerate(generated_images):
-        if (i == 5): return
+        if (i == limit): return
         generated_img = img.clone().detach().cpu()
         original_img = original_imgs[i].clone().detach().cpu()
         mask_img = generated_mask[i].clone().detach().cpu()
@@ -923,7 +923,7 @@ def Dl_TOV_inference_loop(num_epochs, optimizer, lamda, model, loss_dic, data_lo
                 true_mask = intermediate
                 max, generated_mask = generated_masks.max(dim=1)
                 generated_mask = generated_mask.unsqueeze(dim=1)
-                show2(generated_images, X, generated_mask, true_mask, phase, index=100 + total_train_images-batch_size, save=True)
+                show2(generated_images, X, generated_mask, true_mask, phase, index=100 + total_train_images-batch_size, save=True,limit=-1)
 
 
                 # update the progress bar
