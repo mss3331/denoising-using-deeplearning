@@ -12,7 +12,7 @@ from My_losses import *
 # TODO: Implement saving a checkpoint
 
 
-def Dl_TOV_GenSeg_loop(num_epochs, optimizer, lamda, model, loss_fn,
+def Dl_TOV_GenSeg_loop(num_epochs, optimizer, lamda, model, loss_dic,
                        data_loader_dic, device, switch_epoch,colab_dir,
                        model_name,train_Seg_or_Gen,checkpoint):
     best_loss = {k: 1000 for k in data_loader_dic.keys()}

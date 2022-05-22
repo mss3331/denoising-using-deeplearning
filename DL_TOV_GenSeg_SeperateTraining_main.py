@@ -143,7 +143,7 @@ if __name__ == '__main__':
 
     model = model.to(device)
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
-    loss_fn = {'generator':nn.MSELoss(reduction='sum'), # this is generator loss,
+    loss_dic = {'generator':nn.MSELoss(reduction='sum'), # this is generator loss,
                'segmentor':nn.BCEWithLogitsLoss()}
 
     # call the training loop,
@@ -153,7 +153,7 @@ if __name__ == '__main__':
         checkpoint = torch.load('./denoising-using-deeplearning/checkpoints/highest_IOU_{}.pt'.format(model_name))
     else: checkpoint= None
 
-    Dl_TOV_GenSeg_loop(num_epochs, optimizer, lamda, model, loss_fn,
+    Dl_TOV_GenSeg_loop(num_epochs, optimizer, lamda, model, loss_dic,
                        Dataloaders_dic, device, switch_epoch,colab_dir,
                        model_name,train_Seg_or_Gen,checkpoint)
 
