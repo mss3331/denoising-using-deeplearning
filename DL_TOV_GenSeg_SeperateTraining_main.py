@@ -113,7 +113,7 @@ if __name__ == '__main__':
     # Deeplabv3_GRU_CombineChannels_resnet50, Deeplabv3_GRU_ASPP_CombineChannels_resnet50, Deeplabv3_LSTM_resnet50]
     ########################### unet model #####################################################
     # [unit.UNET]
-    model_name = "unet-proposed"
+    model_name = "unet-proposed-"+train_Seg_or_Gen
     model = getModel(train_Seg_or_Gen)
     # Start WandB recording
     initializWandb()
