@@ -143,6 +143,7 @@ def Dl_TOV_GenSeg_loop(num_epochs, optimizer, lamda, model, loss_dic,
                             print('Saving a Checkpoint for the Generator')
                             saving_checkpoint(epoch, model, optimizer,
                                               best_loss['val'], best_loss['test'],
+                                              best_iou['val'], best_iou['test'],
                                               colab_dir, model_name)
 
                 if np.mean(iou_batches) > best_iou[phase]:
