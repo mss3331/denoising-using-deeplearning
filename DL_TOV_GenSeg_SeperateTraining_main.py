@@ -100,7 +100,7 @@ def load_pretrained_model(model, checkpoint,train_Seg_or_Gen):
                           activation='relu',
                           normalization='batch',
                           conv_mode='same',
-                          dim=2)
+                          dim=2).to(device)
     return model
 
 
@@ -195,7 +195,7 @@ if __name__ == '__main__':
 
     Dl_TOV_GenSeg_loop(num_epochs, optimizer, lamda, model, loss_dic,
                        Dataloaders_dic, device, switch_epoch,colab_dir,
-                       model_name,train_Seg_or_Gen,checkpoint)
+                       model_name,train_Seg_or_Gen)
 
     wandb.save(colab_dir + '/*.py')
     wandb.save(colab_dir + '/results/*')
