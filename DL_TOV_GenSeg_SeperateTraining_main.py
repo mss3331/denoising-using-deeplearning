@@ -100,7 +100,7 @@ def load_pretrained_model(model, checkpoint,train_Seg_or_Gen):
                           activation='relu',
                           normalization='batch',
                           conv_mode='same',
-                          dim=2).to(device)
+                          dim=2)
     return model
 
 
@@ -180,6 +180,12 @@ if __name__ == '__main__':
 
     print("Training will be on:", device)
 
+    if train_Seg_or_Gen == 'Seg':
+        checkpoint = torch.load('./denoising-using-deeplearning/checkpoints/highest_IOU_unet-proposed.pt')
+    else:
+        checkpoint = None
+    model = load_pretrained_model(model, checkpoint, train_Seg_or_Gen)
+
     model = model.to(device)
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
     loss_dic = {'generator':nn.MSELoss(reduction='sum'), # this is generator loss,
@@ -188,10 +194,7 @@ if __name__ == '__main__':
     # call the training loop,
     # make sure to pass correct checkpoint path, or none if starting with the training
     start = time.time()
-    if train_Seg_or_Gen=='Seg':
-        checkpoint = torch.load('./denoising-using-deeplearning/checkpoints/highest_IOU_unet-proposed.pt')
-    else: checkpoint= None
-    load_pretrained_model(model,checkpoint,train_Seg_or_Gen)
+
 
     Dl_TOV_GenSeg_loop(num_epochs, optimizer, lamda, model, loss_dic,
                        Dataloaders_dic, device, switch_epoch,colab_dir,

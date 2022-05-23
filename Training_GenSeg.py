@@ -19,7 +19,7 @@ def Dl_TOV_GenSeg_loop(num_epochs, optimizer, lamda, model, loss_dic,
     best_iou = {k: 0 for k in data_loader_dic.keys()}
     best_iou_epoch = -1
     loss_fn_sum = loss_dic['generator']
-
+    bce = loss_dic['segmentor']
 
     for epoch in range(0, num_epochs + 1):
 
@@ -86,9 +86,9 @@ def Dl_TOV_GenSeg_loop(num_epochs, optimizer, lamda, model, loss_dic,
                         if epoch < switch_epoch[1]:  # if we are in stage 2 calculate don't include lamda['l2']
                             loss = loss_grad * lamda['grad'] + loss_l2 * lamda['l2']
                         if epoch >= switch_epoch[1]:  # move to stage 3 loss: ‖f-g * mask(polyp)‖^2 + ‖∇g *mask(1-polyp)‖^2 + BCEWithLoggits
-                            bce = loss_dic['segmentor']
                             loss_mask = bce(generated_masks, original_masks)
-                            loss = loss_grad * lamda['grad'] + loss_l2 * lamda['l2'] + loss_mask
+                            #the only loss we care about is the BCE of the mask
+                            loss = loss_mask
                             iou = IOU_class01(original_masks, generated_masks)
 
                     loss_batches.append(loss.clone().detach().cpu().numpy())
