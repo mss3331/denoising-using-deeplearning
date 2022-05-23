@@ -67,6 +67,28 @@ def getModel(train_Seg_or_Gen):
     elif train_Seg_or_Gen=='Seg':
         model = nn.ModuleList([generator, segmentor])
     return model
+
+
+def load_pretrained_model(model, checkpoint,train_Seg_or_Gen):
+    if checkpoint:
+        state_dict = printCheckpoint(checkpoint)
+        model.load_state_dict(state_dict)
+
+    if train_Seg_or_Gen == 'Seg':
+        for param in model[0].parameters():
+            param.requires_grad = False
+    #in any case, the segmentor should be re-initialize.
+    # Except for inference, though, inference ha entirely different code
+    model[1] = unet.UNet(in_channels=input_channels,
+                          out_channels=2,
+                          n_blocks=4,
+                          activation='relu',
+                          normalization='batch',
+                          conv_mode='same',
+                          dim=2)
+    return model
+
+
 if __name__ == '__main__':
     '''This main is created to do side experiments'''
     repreducibility()
@@ -152,6 +174,7 @@ if __name__ == '__main__':
     if train_Seg_or_Gen=='Seg':
         checkpoint = torch.load('./denoising-using-deeplearning/checkpoints/highest_IOU_{}.pt'.format(model_name))
     else: checkpoint= None
+    load_pretrained_model(model,checkpoint)
 
     Dl_TOV_GenSeg_loop(num_epochs, optimizer, lamda, model, loss_dic,
                        Dataloaders_dic, device, switch_epoch,colab_dir,

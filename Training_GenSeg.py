@@ -14,18 +14,12 @@ from My_losses import *
 
 def Dl_TOV_GenSeg_loop(num_epochs, optimizer, lamda, model, loss_dic,
                        data_loader_dic, device, switch_epoch,colab_dir,
-                       model_name,train_Seg_or_Gen,checkpoint):
+                       model_name,train_Seg_or_Gen):
     best_loss = {k: 1000 for k in data_loader_dic.keys()}
     best_iou = {k: 0 for k in data_loader_dic.keys()}
     best_iou_epoch = -1
     loss_fn_sum = loss_dic['generator']
-    if checkpoint:
-        state_dict = printCheckpoint(checkpoint)
-        model.load_state_dict(state_dict)
 
-    if train_Seg_or_Gen=='Seg':
-        for param in model[0].parameters():
-            param.requires_grad = False
 
     for epoch in range(0, num_epochs + 1):
 
