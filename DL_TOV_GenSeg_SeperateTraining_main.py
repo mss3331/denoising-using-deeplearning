@@ -69,6 +69,21 @@ def getModel(train_Seg_or_Gen):
     return model
 
 
+def printCheckpoint(checkpoint):
+    ''''epoch': epoch + 1,
+        'description': "add your description",
+        'state_dict': model.state_dict(),
+        'optimizer_state_dict': optimizer.state_dict(),
+        'Validation Loss': val_loss,
+        'Test Loss': test_loss,
+        'MeanIOU test': test_mIOU,
+        'MeanIOU val': val_mIOU'''
+    for key,value in checkpoint.items():
+        if key.find('state')>=0:
+            continue
+        print(key,":",value)
+    return checkpoint['state_dict']
+
 def load_pretrained_model(model, checkpoint,train_Seg_or_Gen):
     if checkpoint:
         state_dict = printCheckpoint(checkpoint)
@@ -93,7 +108,7 @@ if __name__ == '__main__':
     '''This main is created to do side experiments'''
     repreducibility()
     #either Seg or Gen
-    train_Seg_or_Gen = "Gen"
+    train_Seg_or_Gen = "Seg"
     experiment_name=get('http://172.28.0.2:9000/api/sessions').json()[0]['name'].split('.')[0]
     learning_rate = 0.01
     input_channels = 3
@@ -114,7 +129,9 @@ if __name__ == '__main__':
     num_epochs = 200
     batch_size = 7
     shuffle = False
-    lamda = {"l2":1,"grad":10} #L2 and Grad
+    if train_Seg_or_Gen=='Gen':
+        lamda = {"l2":1,"grad":10} #L2 and Grad
+    else: lamda = {"l2":1,"grad":1} #L2 and Grad
 
     # ************** modify for full experiment *************
     # load_to_RAM = True

@@ -834,28 +834,13 @@ def show_filter(generated_masks, original_masks,kernel3D, phase, index, save):
         #     plt.show()
         #     plt.clf()
         # print(img)
-def printCheckpoint(checkpoint):
-    ''''epoch': epoch + 1,
-        'description': "add your description",
-        'state_dict': model.state_dict(),
-        'optimizer_state_dict': optimizer.state_dict(),
-        'Validation Loss': val_loss,
-        'Test Loss': test_loss,
-        'MeanIOU test': test_mIOU,
-        'MeanIOU val': val_mIOU'''
-    for key,value in checkpoint.items():
-        if key.find('state')>=0:
-            continue
-        print(key,":",value)
-    return checkpoint['state_dict']
+
 def Dl_TOV_inference_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loader_dic, device,checkpoint):
     best_loss = {k: 1000 for k in data_loader_dic.keys()}
     best_iou = {k: 0 for k in data_loader_dic.keys()}
     best_iou_epoch = -1
     loss_fn_sum = loss_dic['generator']
-    if checkpoint:
-        state_dict = printCheckpoint(checkpoint)
-        model.load_state_dict(state_dict)
+
     for epoch in range(0, num_epochs + 1):
 
         for phase in data_loader_dic.keys():
