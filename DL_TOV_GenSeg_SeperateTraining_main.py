@@ -189,9 +189,9 @@ if __name__ == '__main__':
     # make sure to pass correct checkpoint path, or none if starting with the training
     start = time.time()
     if train_Seg_or_Gen=='Seg':
-        checkpoint = torch.load('./denoising-using-deeplearning/checkpoints/highest_IOU_{}.pt'.format(model_name))
+        checkpoint = torch.load('./denoising-using-deeplearning/checkpoints/highest_IOU_unet-proposed.pt')
     else: checkpoint= None
-    load_pretrained_model(model,checkpoint)
+    load_pretrained_model(model,checkpoint,train_Seg_or_Gen)
 
     Dl_TOV_GenSeg_loop(num_epochs, optimizer, lamda, model, loss_dic,
                        Dataloaders_dic, device, switch_epoch,colab_dir,
