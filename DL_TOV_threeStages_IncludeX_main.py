@@ -139,7 +139,7 @@ if __name__ == '__main__':
     # make sure to pass correct checkpoint path, or none if starting with the training
     start = time.time()
 
-    Dl_TOV_IncludeX_loop(num_epochs, optimizer, lamda, model, loss_fn,
+    Dl_TOV_IncludeXV2_loop(num_epochs, optimizer, lamda, model, loss_fn,
                   Dataloaders_dic, device, switch_epoch,colab_dir, model_name)
 
     wandb.save(colab_dir + '/*.py')
