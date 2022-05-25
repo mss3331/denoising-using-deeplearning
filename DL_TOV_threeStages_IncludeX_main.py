@@ -49,7 +49,7 @@ def repreducibility():
 if __name__ == '__main__':
     '''This main is created to do side experiments'''
     repreducibility()
-
+    IncludeXVersion = ''
     experiment_name=get('http://172.28.0.2:9000/api/sessions').json()[0]['name'].split('.')[0]
     learning_rate = 0.01
     input_channels = 3
@@ -88,7 +88,7 @@ if __name__ == '__main__':
     # Deeplabv3_GRU_CombineChannels_resnet50, Deeplabv3_GRU_ASPP_CombineChannels_resnet50, Deeplabv3_LSTM_resnet50]
     ########################### unet model #####################################################
     # [unit.UNET]
-    model_name = "unet-proposed"
+    model_name = "unet-proposed-"+IncludeXVersion
     generator = unet.UNet(in_channels=input_channels,
                       out_channels=number_classes,
                       n_blocks=4,
@@ -138,9 +138,15 @@ if __name__ == '__main__':
     # call the training loop,
     # make sure to pass correct checkpoint path, or none if starting with the training
     start = time.time()
-
-    Dl_TOV_IncludeXV2_loop(num_epochs, optimizer, lamda, model, loss_fn,
+    if IncludeXVersion=='2':
+        Dl_TOV_IncludeXV2_loop(num_epochs, optimizer, lamda, model, loss_fn,
                   Dataloaders_dic, device, switch_epoch,colab_dir, model_name)
+    elif IncludeXVersion=='1':
+        Dl_TOV_IncludeX_loop(num_epochs, optimizer, lamda, model, loss_fn,
+                               Dataloaders_dic, device, switch_epoch, colab_dir, model_name)
+    else:
+        print("Which version you want? 1 or 2")
+        exit(-1)
 
     wandb.save(colab_dir + '/*.py')
     wandb.save(colab_dir + '/results/*')
