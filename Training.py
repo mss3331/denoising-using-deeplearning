@@ -1102,6 +1102,8 @@ def cat_split(tensor_s):
         return tensor_s.chunk(chunks=2)
 
 def Dl_TOV_IncludeXV2_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loader_dic, device,switch_epoch,colab_dir, model_name):
+    '''In the training, X and G are different images. Val/Test the highest probability should be selected for each
+    pixel'''
     best_loss = {k: 1000 for k in data_loader_dic.keys()}
     best_iou = {k: 0 for k in data_loader_dic.keys()}
     best_iou_epoch = -1
@@ -1147,6 +1149,7 @@ def Dl_TOV_IncludeXV2_loop(num_epochs, optimizer, lamda, model, loss_dic, data_l
                     [generated_masks, x_masks] = cat_split(output_masks)
 
 
+
                 optimizer.zero_grad()
 
                 with torch.set_grad_enabled(phase == 'train'):
@@ -1173,11 +1176,19 @@ def Dl_TOV_IncludeXV2_loop(num_epochs, optimizer, lamda, model, loss_dic, data_l
                             loss = loss_grad * lamda['grad'] + loss_l2
                         if epoch >= switch_epoch[1]:  # move to stage 3 loss: ‖f-g * mask(polyp)‖^2 + ‖∇g *mask(1-polyp)‖^2 + BCEWithLoggits
                             bce = loss_dic['segmentor']
-                            loss_generated_mask = bce(generated_masks, original_masks)
-                            loss_x_mask = bce(x_masks, original_masks)
-                            loss_mask = loss_generated_mask*0.6 + loss_x_mask*0.4
+                            if phase=='train':
+                                loss_generated_mask = bce(generated_masks, original_masks)
+                                loss_x_mask = bce(x_masks, original_masks)
+                                loss_mask = loss_generated_mask*0.6 + loss_x_mask*0.4
+                                iou = IOU_class01(original_masks, generated_masks)
+                            else:
+                                generated_X_masks_stacked = torch.stack((generated_masks,x_masks), dim=2)
+                                unified_masks, _ = generated_X_masks_stacked.max(dim=2)
+                                loss_mask = bce(generated_masks, original_masks)
+                                iou = IOU_class01(original_masks, unified_masks)
+
                             loss = loss_grad * lamda['grad'] + loss_l2 * lamda['l2'] + loss_mask
-                            iou = IOU_class01(original_masks, generated_masks)
+
 
                     loss_batches.append(loss.clone().detach().cpu().numpy())
                     loss_l2_batches.append(loss_l2.clone().detach().cpu().numpy())
