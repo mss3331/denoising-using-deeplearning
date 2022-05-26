@@ -6,6 +6,7 @@ import random
 import time
 import os
 import numpy as np
+from requests import get
 from Plotting import plot, plot_test
 from torch.nn import functional as F
 from MyDataloaders import *
@@ -48,7 +49,7 @@ def initializWandb():
 if __name__ == '__main__':
     '''This main is created to do side experiments'''
     repreducibility()
-    experiment_name=""
+    experiment_name=get('http://172.28.0.2:9000/api/sessions').json()[0]['name'].split('.')[0]
     learning_rate = 0.01
     input_channels = 3
     number_classes = 2  # output channels should be one mask for binary class
@@ -62,7 +63,7 @@ if __name__ == '__main__':
     if run_in_colab:
         root_dir = "/content/CVC-ClinicDB"
         colab_dir = "/content/denoising-using-deeplearning"
-    num_epochs = 200
+    num_epochs = 300
     batch_size = 7
     shuffle = False
     lamda = {"l2":1,"grad":10} #L2 and Grad
