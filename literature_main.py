@@ -46,6 +46,24 @@ def initializWandb():
             "lamda": lamda,
             "num_epochs": num_epochs,
             "dataset": root_dir.split("/")[-1], })
+
+def getModel(model_name, argument):
+    if model_name=='unet':
+        model = unet.UNet(in_channels=input_channels,
+                          out_channels=number_classes,
+                          n_blocks=4,
+                          activation='relu',
+                          normalization='batch',
+                          conv_mode='same',
+                          dim=2)
+    elif model_name == 'Deeplap_resnet50':
+        model = DeepLabModels.Deeplabv3(num_classes=number_classes, backbone=model_name)
+    else:
+        print('please specify a valid model name, Thanks!')
+        exit(-1)
+
+    return model
+
 if __name__ == '__main__':
     '''This main is created to do side experiments'''
     repreducibility()
@@ -87,14 +105,9 @@ if __name__ == '__main__':
     # Deeplabv3_GRU_CombineChannels_resnet50, Deeplabv3_GRU_ASPP_CombineChannels_resnet50, Deeplabv3_LSTM_resnet50]
     ########################### unet model #####################################################
     # [unit.UNET]
-    model_name = "unet"
-    model = unet.UNet(in_channels=input_channels,
-                      out_channels=number_classes,
-                      n_blocks=4,
-                      activation='relu',
-                      normalization='batch',
-                      conv_mode='same',
-                      dim=2)
+    model_name = "Deeplap_resnet50"
+    model = getModel(model_name, argument=None)
+
     initializWandb()
     print("epochs {} batch size {}".format(num_epochs, batch_size))
 
