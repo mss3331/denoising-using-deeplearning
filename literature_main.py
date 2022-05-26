@@ -58,6 +58,8 @@ def getModel(model_name, argument):
                           dim=2)
     elif model_name == 'Deeplap_resnet50':
         model = DeepLabModels.Deeplabv3(num_classes=number_classes, backbone=model_name)
+    elif model_name == 'FCN_resnet50':
+        model = FCNModels.FCN(num_classes=number_classes, backbone=model_name)
     else:
         print('please specify a valid model name, Thanks!')
         exit(-1)
@@ -105,7 +107,7 @@ if __name__ == '__main__':
     # Deeplabv3_GRU_CombineChannels_resnet50, Deeplabv3_GRU_ASPP_CombineChannels_resnet50, Deeplabv3_LSTM_resnet50]
     ########################### unet model #####################################################
     # [unit.UNET]
-    model_name = "Deeplap_resnet50"
+    model_name = "FCN_resnet50"
     model = getModel(model_name, argument=None)
 
     initializWandb()
