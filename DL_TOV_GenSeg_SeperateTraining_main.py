@@ -92,15 +92,15 @@ def load_pretrained_model(model, checkpoint,train_Seg_or_Gen):
     if train_Seg_or_Gen == 'Seg':
         for param in model[0].parameters():
             param.requires_grad = False
-    #in any case, the segmentor should be re-initialize.
-    # Except for inference, though, inference ha entirely different code
-    model[1] = unet.UNet(in_channels=input_channels,
-                          out_channels=2,
-                          n_blocks=4,
-                          activation='relu',
-                          normalization='batch',
-                          conv_mode='same',
-                          dim=2)
+        #in any case, the segmentor should be re-initialize.
+        # Except for inference, though, inference ha entirely different code
+        model[1] = unet.UNet(in_channels=input_channels,
+                              out_channels=2,
+                              n_blocks=4,
+                              activation='relu',
+                              normalization='batch',
+                              conv_mode='same',
+                              dim=2)
     return model
 
 
