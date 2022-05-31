@@ -22,7 +22,7 @@ class Deeplabv3(nn.Module):
             exit(-1)
         self.dl.classifier[4] = torch.nn.Conv2d(256, num_classes, 1)
         # self.dl.classifier = DeepLabHead(2048, num_classes)
-        self.dl.classifier[0].project[3]=nn.Dropout(p=0, inplace=False)
+        # self.dl.classifier[0].project[3]=nn.Dropout(p=0, inplace=False)
 
 
 

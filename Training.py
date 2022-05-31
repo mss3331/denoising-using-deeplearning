@@ -646,7 +646,7 @@ def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loa
                       step=epoch)
 
 
-def literature_training_loop(num_epochs, optimizer, lamda, model, BCE, data_loader_dic, device):
+def literature_training_loop(num_epochs, optimizer, lamda, model, BCE, data_loader_dic, device,colab_dir, model_name):
     best_loss = {k: 1000 for k in data_loader_dic.keys()}
     best_iou = {k: 0 for k in data_loader_dic.keys()}
     best_iou_epoch = -1
@@ -709,20 +709,29 @@ def literature_training_loop(num_epochs, optimizer, lamda, model, BCE, data_load
                                   })
             if phase != 'train':
                 if np.mean(loss_batches) < best_loss[phase]:
-                    print('best loss={} so far ...'.format(np.mean(loss_batches)))
-                    wandb.run.summary["best_{}_epoch_loss".format(phase)] = epoch
+                    print('best {} loss={} so far ...'.format(phase, np.mean(loss_batches)))
+                    wandb.run.summary["best_{}_loss_epoch".format(phase)] = epoch
                     wandb.run.summary["best_{}_loss".format(phase)] = np.mean(loss_batches)
                     best_loss[phase] = np.mean(loss_batches)
                     if phase == 'val':
-                        print('saving a checkpoint')
-                if np.mean(iou_batches) > best_iou[phase]:
-                    wandb.run.summary["best_{}_epoch_iou".format(phase)] = epoch
-                    wandb.run.summary["best_{}_iou".format(phase)] = np.mean(iou_batches)
-                    best_iou[phase] = np.mean(iou_batches)
-                    if phase == 'val':
+                        print('better validation loss')
+                if phase == 'val':
+                    if np.mean(iou_batches) > best_iou[phase]:
+                        wandb.run.summary["best_{}_iou".format(phase)] = np.mean(iou_batches)
+                        wandb.run.summary["best_{}_iou_epoch".format(phase)] = epoch
+                        best_iou[phase] = np.mean(iou_batches)
+                        best_loss[phase] = np.mean(loss_batches)
                         best_iou_epoch = epoch
                         print('best val_iou')
                         print('testing on a test set....\n')
+                if phase == 'test':  # if we reach inside this, it means we achieved a better val iou
+                    print('saving a checkpoint')
+                    best_iou['test'] = np.mean(iou_batches)
+                    best_loss['test'] = np.mean(loss_batches)
+                    saving_checkpoint(epoch, model, optimizer,
+                                      best_loss['val'], best_loss['test'],
+                                      best_iou['val'], best_iou['test'],
+                                      colab_dir, model_name)
 
             wandb.log({phase + "_loss": np.mean(loss_batches),
                        phase + '_iou': np.mean(iou_batches),
@@ -1249,6 +1258,7 @@ def Dl_TOV_IncludeXV2_loop(num_epochs, optimizer, lamda, model, loss_dic, data_l
                                       best_loss['val'], best_loss['test'],
                                       best_iou['val'], best_iou['test'],
                                       colab_dir, model_name)
+                    
 
             wandb.log({phase + "_loss": np.mean(loss_batches),
                        phase + "_L2": np.mean(loss_l2_batches), phase + "_grad": np.mean(loss_grad_batches),

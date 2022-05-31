@@ -6,6 +6,7 @@ import random
 import time
 import os
 import numpy as np
+from requests import get
 from Plotting import plot, plot_test
 from torch.nn import functional as F
 from MyDataloaders import *
@@ -45,10 +46,30 @@ def initializWandb():
             "lamda": lamda,
             "num_epochs": num_epochs,
             "dataset": root_dir.split("/")[-1], })
+
+def getModel(model_name, argument):
+    if model_name=='unet':
+        model = unet.UNet(in_channels=input_channels,
+                          out_channels=number_classes,
+                          n_blocks=4,
+                          activation='relu',
+                          normalization='batch',
+                          conv_mode='same',
+                          dim=2)
+    elif model_name == 'Deeplap_resnet50':
+        model = DeepLabModels.Deeplabv3(num_classes=number_classes, backbone=model_name)
+    elif model_name == 'FCN_resnet50':
+        model = FCNModels.FCN(num_classes=number_classes, backbone=model_name)
+    else:
+        print('please specify a valid model name, Thanks!')
+        exit(-1)
+
+    return model
+
 if __name__ == '__main__':
     '''This main is created to do side experiments'''
     repreducibility()
-    experiment_name=""
+    experiment_name=get('http://172.28.0.2:9000/api/sessions').json()[0]['name'].split('.')[0]
     learning_rate = 0.01
     input_channels = 3
     number_classes = 2  # output channels should be one mask for binary class
@@ -62,7 +83,7 @@ if __name__ == '__main__':
     if run_in_colab:
         root_dir = "/content/CVC-ClinicDB"
         colab_dir = "/content/denoising-using-deeplearning"
-    num_epochs = 200
+    num_epochs = 300
     batch_size = 7
     shuffle = False
     lamda = {"l2":1,"grad":10} #L2 and Grad
@@ -86,14 +107,9 @@ if __name__ == '__main__':
     # Deeplabv3_GRU_CombineChannels_resnet50, Deeplabv3_GRU_ASPP_CombineChannels_resnet50, Deeplabv3_LSTM_resnet50]
     ########################### unet model #####################################################
     # [unit.UNET]
-    model_name = "unet"
-    model = unet.UNet(in_channels=input_channels,
-                      out_channels=number_classes,
-                      n_blocks=4,
-                      activation='relu',
-                      normalization='batch',
-                      conv_mode='same',
-                      dim=2)
+    model_name = "FCN_resnet50"
+    model = getModel(model_name, argument=None)
+
     initializWandb()
     print("epochs {} batch size {}".format(num_epochs, batch_size))
 
@@ -132,7 +148,7 @@ if __name__ == '__main__':
     start = time.time()
 
     literature_training_loop(num_epochs, optimizer, lamda, model, loss_fn,
-                  Dataloaders_dic, device)
+                  Dataloaders_dic, device, colab_dir, model_name)
 
     wandb.save(colab_dir + '/*.py')
     wandb.save(colab_dir + '/results/*')
