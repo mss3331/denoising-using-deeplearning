@@ -14,7 +14,7 @@ from My_losses import *
 
 def Dl_TOV_GenSeg_loop(num_epochs, optimizer, lamda, model, loss_dic,
                        data_loader_dic, device, switch_epoch,colab_dir,
-                       model_name,train_Seg_or_Gen):
+                       model_name,train_Seg_or_Gen, inference):
     best_loss = {k: 1000 for k in data_loader_dic.keys()}
     best_iou = {k: 0 for k in data_loader_dic.keys()}
     best_iou_epoch = -1
@@ -25,7 +25,8 @@ def Dl_TOV_GenSeg_loop(num_epochs, optimizer, lamda, model, loss_dic,
 
         for phase in data_loader_dic.keys():
             if phase == 'test' and best_iou_epoch!=epoch: #skip testing if no better iou val achieved
-                continue
+                if not inference:# skip if we are not doing inference
+                    continue
             if phase == 'train':
                 if train_Seg_or_Gen=='Gen':
                     #The model is actually Sequential(generator,Sigmoid)
