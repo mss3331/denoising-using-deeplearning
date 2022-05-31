@@ -84,12 +84,12 @@ def printCheckpoint(checkpoint):
         print(key,":",value)
     return checkpoint['state_dict']
 
-def load_pretrained_model(model, checkpoint,train_Seg_or_Gen):
+def load_pretrained_model(model, checkpoint,train_Seg_or_Gen, inference):
     if checkpoint:
         state_dict = printCheckpoint(checkpoint)
         model.load_state_dict(state_dict)
 
-    if train_Seg_or_Gen == 'Seg':
+    if train_Seg_or_Gen == 'Seg' and not inference:
         for param in model[0].parameters():
             param.requires_grad = False
         #in any case, the segmentor should be re-initialize.
@@ -108,7 +108,8 @@ if __name__ == '__main__':
     '''This main is created to do side experiments'''
     repreducibility()
     #either Seg or Gen
-    train_Seg_or_Gen = "Seg"
+    train_Seg_or_Gen = "Gen"
+    inference=False
     experiment_name=get('http://172.28.0.2:9000/api/sessions').json()[0]['name'].split('.')[0]
     learning_rate = 0.01
     input_channels = 3
@@ -181,10 +182,10 @@ if __name__ == '__main__':
     print("Training will be on:", device)
 
     if train_Seg_or_Gen == 'Seg':
-        checkpoint = torch.load('./denoising-using-deeplearning/checkpoints/highest_IOU_unet-proposed.pt')
+        checkpoint = torch.load('./denoising-using-deeplearning/checkpoints/highest_IOU_'+model_name+'.pt')
     else:
         checkpoint = None
-    model = load_pretrained_model(model, checkpoint, train_Seg_or_Gen)
+    model = load_pretrained_model(model, checkpoint, train_Seg_or_Gen, inference)
 
     model = model.to(device)
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
@@ -195,7 +196,9 @@ if __name__ == '__main__':
     # make sure to pass correct checkpoint path, or none if starting with the training
     start = time.time()
 
-
+    if inference:
+        num_epochs=0
+        Dataloaders_dic.pop('train')
     Dl_TOV_GenSeg_loop(num_epochs, optimizer, lamda, model, loss_dic,
                        Dataloaders_dic, device, switch_epoch,colab_dir,
                        model_name,train_Seg_or_Gen)
