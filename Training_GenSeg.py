@@ -28,13 +28,13 @@ def Dl_TOV_GenSeg_loop(num_epochs, optimizer, lamda, model, loss_dic,
                 continue
             if phase == 'train':
                 if train_Seg_or_Gen=='Gen':
-                    model[0].train()  # Set model to training mode
+                    #The model is actually Sequential(generator,Sigmoid)
+                    model.train()  # Set model to training mode.
                 if train_Seg_or_Gen=='Seg':
                     model[0].eval()  # Set model to training mode
                     model[1].train()  # Set model to training mode
             else:
-                model[0].eval()  # Set model to evaluate mode
-                model[1].eval()  # Set model to evaluate mode
+                model.eval()  # Set model to evaluate mode
 
             flag = True #flag for showing first batch
             total_train_images = 0
@@ -55,8 +55,11 @@ def Dl_TOV_GenSeg_loop(num_epochs, optimizer, lamda, model, loss_dic,
                 X = X.to(device).float()
                 intermediate = intermediate.to(device).float()  # intermediate is the mask with type of float
                 original_masks = original_masks.to(device)#this is 2 channels mask
+                if train_Seg_or_Gen=='Gen':
+                    generated_images = model(X)
+                else:
+                    generated_images = model[0](X)
 
-                generated_images = model[0](X)
                 generated_X = generated_images.clone().detach()
                 if epoch >= switch_epoch[1]:
                     generated_masks = model[1](generated_X)
