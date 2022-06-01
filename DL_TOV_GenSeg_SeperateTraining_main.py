@@ -109,13 +109,16 @@ if __name__ == '__main__':
     repreducibility()
     #either Seg or Gen
     train_Seg_or_Gen = "Gen"
-    inference=False
+    inference=True
     experiment_name=get('http://172.28.0.2:9000/api/sessions').json()[0]['name'].split('.')[0]
     learning_rate = 0.01
     input_channels = 3
     number_classes = 3  # output channels should be one mask for binary class
     if train_Seg_or_Gen=='Gen':
-        switch_epoch = [50,1500000] # when to switch to the next training stage?
+        if inference:
+          switch_epoch = [-1,1500000] # ignore stage1 for inference
+        else:
+          switch_epoch = [50,1500000] # when to switch to the next training stage?
     elif train_Seg_or_Gen=='Seg':
         switch_epoch = [-1,-1]  # when to switch to the next training stage?
     run_in_colab = True
@@ -133,6 +136,8 @@ if __name__ == '__main__':
     if train_Seg_or_Gen=='Gen':
         lamda = {"l2":1,"grad":10} #L2 and Grad
     else: lamda = {"l2":1,"grad":1} #L2 and Grad
+    if inference:
+        lamda = {"l2":1,"grad":1} #L2 and Grad
 
     # ************** modify for full experiment *************
     # load_to_RAM = True

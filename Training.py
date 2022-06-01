@@ -98,7 +98,7 @@ def training_loop(num_epochs, optimizer, lamda, model, loss_fn, data_loader_dic,
                        phase+'_original_images_grad': np.mean(original_images_grad),"best_val_loss":best_val_loss, phase+"_epoch": epoch},
                       step=epoch)
 
-def show2(generated_images, X, generated_mask,true_mask, phase, index, save,limit=5):
+def show2(generated_images, X, generated_mask,true_mask, phase, index, save,save_all=(False,-1),limit=5):
     original_imgs = X
     if not generated_mask.shape == original_imgs.shape:
         generated_mask = generated_mask.repeat(1, 3, 1, 1)
@@ -107,6 +107,14 @@ def show2(generated_images, X, generated_mask,true_mask, phase, index, save,limi
     if not generated_images.shape == original_imgs.shape:
         generated_images.unsqueeze_(1)  # (N,H,W) ==> (N,1,H,W)
         generated_images = generated_images.repeat(1, 3, 1, 1)  # (N,1,H,W) ==> (N,3,H,W)
+
+    # inference mode configuration
+    inference_mode = False
+    total_images_so_far = save_all[1]
+    if save_all[0]:  # True if we are in inference phase
+        inference_mode = True
+        limit=-1 #no limit
+    # End inference mode configuration
 
     toPIL = transforms.ToPILImage()
     for i, img in enumerate(generated_images):
@@ -119,7 +127,11 @@ def show2(generated_images, X, generated_mask,true_mask, phase, index, save,limi
         masks_cat = torch.cat((true_mask_img, mask_img), 2)
         img = torch.cat((imgs_cat, masks_cat), 1)
         img = toPIL(img)  # .numpy().transpose((1, 2, 0))
-        img.save('./generatedImages_' + phase + '/' + str(index) + '_' + str(i) + 'generated.png')
+        if inference_mode:
+            image_numbering = str(index+i+ (total_images_so_far-len(generated_images)))
+        else:
+            image_numbering = str(index) + '_' + str(i)
+        img.save('./generatedImages_' + phase + '/' + image_numbering + 'generated.png')
 
 def show(generated_imgs, original_imgs,masks, phase, index, save):
     # if not isinstance(torch_img,list):
