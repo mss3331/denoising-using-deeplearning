@@ -87,7 +87,10 @@ def printCheckpoint(checkpoint):
 def load_pretrained_model(model, checkpoint,train_Seg_or_Gen, inference):
     if checkpoint:
         state_dict = printCheckpoint(checkpoint)
-        model.load_state_dict(state_dict)
+        if inference:
+            model.load_state_dict(state_dict)
+        elif train_Seg_or_Gen=='Seg':
+            model[0].load_state_dict(state_dict) #load weights for generator only
 
     if train_Seg_or_Gen == 'Seg' and not inference:
         for param in model[0].parameters():

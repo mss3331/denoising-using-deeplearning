@@ -115,11 +115,11 @@ def Dl_TOV_GenSeg_loop(num_epochs, optimizer, lamda, model, loss_dic,
                         max, generated_mask = generated_masks.max(dim=1)
                         generated_mask = generated_mask.unsqueeze(dim=1)
                         show2(generated_images, X, generated_mask,true_mask, phase,
-                              index=100 + epoch, save=True, limit=limit,save_all=(inference,total_train_images))
+                              index=100 + epoch, save=True,save_all=(inference,total_train_images))
                     else: #stage 1 and 2
                         generated_mask = torch.zeros(generated_images.shape)
                         show2(generated_images, X, generated_mask,true_mask, phase,
-                              index=100 + epoch, save=True,limit=limit,save_all=(inference,total_train_images))
+                              index=100 + epoch, save=True,save_all=(inference,total_train_images))
 
                 # update the progress bar
                 pbar.set_postfix({phase + ' Epoch': str(epoch) + "/" + str(num_epochs - 1),
