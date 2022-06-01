@@ -90,20 +90,22 @@ def load_pretrained_model(model, checkpoint,train_Seg_or_Gen, inference):
         if inference:
             model.load_state_dict(state_dict)
         elif train_Seg_or_Gen=='Seg':
-            model[0].load_state_dict(state_dict) #load weights for generator only
+            model.load_state_dict(state_dict) #load weights for generator only
 
     if train_Seg_or_Gen == 'Seg' and not inference:
-        for param in model[0].parameters():
+        for param in model.parameters():
             param.requires_grad = False
         #in any case, the segmentor should be re-initialize.
         # Except for inference, though, inference ha entirely different code
-        model[1] = unet.UNet(in_channels=input_channels,
+        seg = unet.UNet(in_channels=input_channels,
                               out_channels=2,
                               n_blocks=4,
                               activation='relu',
                               normalization='batch',
                               conv_mode='same',
                               dim=2)
+        model = nn.ModuleList([model, seg])
+
     return model
 
 
@@ -111,8 +113,8 @@ if __name__ == '__main__':
     '''This main is created to do side experiments'''
     repreducibility()
     #either Seg or Gen
-    train_Seg_or_Gen = "Gen"
-    inference=True
+    train_Seg_or_Gen = "Seg"
+    inference=False
     experiment_name=get('http://172.28.0.2:9000/api/sessions').json()[0]['name'].split('.')[0]
     learning_rate = 0.01
     input_channels = 3
@@ -133,7 +135,7 @@ if __name__ == '__main__':
     if run_in_colab:
         root_dir = "/content/CVC-ClinicDB"
         colab_dir = "/content/denoising-using-deeplearning"
-    num_epochs = 200
+    num_epochs = 300
     batch_size = 7
     shuffle = False
     if train_Seg_or_Gen=='Gen':
@@ -162,7 +164,7 @@ if __name__ == '__main__':
     ########################### unet model #####################################################
     # [unit.UNET]
     model_name = "unet-proposed-"+train_Seg_or_Gen
-    model = getModel(train_Seg_or_Gen)
+    model = getModel('Gen')
     # Start WandB recording
     initializWandb()
     print('#'*50,'training which part?:',train_Seg_or_Gen,'#'*50)
@@ -190,7 +192,7 @@ if __name__ == '__main__':
     print("Training will be on:", device)
 
     if train_Seg_or_Gen == 'Seg' or inference:
-        checkpoint = torch.load('./denoising-using-deeplearning/checkpoints/highest_IOU_'+model_name+'.pt')
+        checkpoint = torch.load('./denoising-using-deeplearning/checkpoints/highest_IOU_unet-proposed-Gen.pt')
     else:
         checkpoint = None
     model = load_pretrained_model(model, checkpoint, train_Seg_or_Gen, inference)

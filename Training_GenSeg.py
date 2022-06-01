@@ -149,7 +149,7 @@ def Dl_TOV_GenSeg_loop(num_epochs, optimizer, lamda, model, loss_dic,
                                               best_iou['val'], best_iou['test'],
                                               colab_dir, model_name)
 
-                if np.mean(iou_batches) > best_iou[phase]:
+                if np.mean(iou_batches) > best_iou[phase] and phase=='val':
                     wandb.run.summary["best_{}_iou".format(phase)] = np.mean(iou_batches)
                     wandb.run.summary["best_{}_iou_epoch".format(phase)] = epoch
                     best_iou[phase] = np.mean(iou_batches)
@@ -164,6 +164,8 @@ def Dl_TOV_GenSeg_loop(num_epochs, optimizer, lamda, model, loss_dic,
                                       best_loss['val'], best_loss['test'],
                                       best_iou['val'], best_iou['test'],
                                       colab_dir, model_name)
+                    best_iou['test'] = np.mean(iou_batches)
+                    best_loss['test'] = np.mean(loss_batches)
 
             wandb.log({phase + "_loss": np.mean(loss_batches),
                        phase + "_L2": np.mean(loss_l2_batches), phase + "_grad": np.mean(loss_grad_batches),
