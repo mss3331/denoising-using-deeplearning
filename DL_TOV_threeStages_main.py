@@ -14,6 +14,7 @@ from Metrics import *
 from models import MyModelV1, FCNModels, DeepLabModels, unet
 import torch
 from MyDataloaders_denoising import getDataloadersDic
+from models.GenSeg_Models import GenSeg_IncludeX_max, unet_proposed
 from torch import nn
 from Training import *
 from torchvision import datasets
@@ -45,6 +46,19 @@ def repreducibility():
     np.random.seed(0)
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
+
+
+def getModel(model_name):
+    if model_name=='unet-proposed':
+        model = unet_proposed()
+    elif model_name=='GenSeg_IncludeX_max':
+        model = GenSeg_IncludeX_max
+    else:
+        print('Model name unidentified')
+        exit(-1)
+
+    return model
+
 
 if __name__ == '__main__':
     '''This main is created to do side experiments'''
@@ -87,24 +101,10 @@ if __name__ == '__main__':
     # [Deeplap_resnet50, Deeplap_resnet101, FCN_resnet50, FCN_resnet101, Deeplabv3_GRU_ASPP_resnet50,
     # Deeplabv3_GRU_CombineChannels_resnet50, Deeplabv3_GRU_ASPP_CombineChannels_resnet50, Deeplabv3_LSTM_resnet50]
     ########################### unet model #####################################################
-    # [unit.UNET]
+    # [unet-proposed, GenSeg_IncludeX_max]
     model_name = "unet-proposed"
-    generator = unet.UNet(in_channels=input_channels,
-                      out_channels=number_classes,
-                      n_blocks=4,
-                      activation='relu',
-                      normalization='batch',
-                      conv_mode='same',
-                      dim=2)
-    generator = nn.Sequential(generator, nn.Sigmoid())
-    segmentor = unet.UNet(in_channels=input_channels,
-                      out_channels=2,
-                      n_blocks=4,
-                      activation='relu',
-                      normalization='batch',
-                      conv_mode='same',
-                      dim=2)
-    model = nn.ModuleList([generator, segmentor])
+    model = getModel(model_name)
+
     # Start WandB recording
     initializWandb()
     print("Experiment name:",experiment_name)

@@ -529,11 +529,12 @@ def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loa
             if phase == 'test' and best_iou_epoch!=epoch: #skip testing if no better iou val achieved
                 continue
             if phase == 'train':
-                model[0].train()  # Set model to training mode
-                model[1].train()  # Set model to training mode
+                model.train()
+                # model[0].train()  # Set model to training mode
+                # model[1].train()  # Set model to training mode
             else:
-                model[0].eval()  # Set model to evaluate mode
-                model[1].eval()  # Set model to evaluate mode
+                model.eval()
+                # model[0].eval()  # Set model to evaluate mode
 
             flag = True #flag for showing first batch
             total_train_images = 0
@@ -554,11 +555,14 @@ def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loa
                 X = X.to(device).float()
                 intermediate = intermediate.to(device).float()  # intermediate is the mask with type of float
                 original_masks = original_masks.to(device)#this is 2 channels mask
-
-                generated_images = model[0](X)
-                generated_X = generated_images.clone().detach()
-                if epoch >= switch_epoch[1]:
-                    generated_masks = model[1](generated_X)
+                if model_name.find('GenSeg_IncludeX')>=0:
+                    results = model(X,phase,original_masks)
+                    generated_images, generated_masks, original_masks = results
+                else:#the old version code i.e., other than GenSeg_models
+                    generated_images = model[0](X)
+                    generated_X = generated_images.clone().detach()
+                    if epoch >= switch_epoch[1]:
+                        generated_masks = model[1](generated_X)
 
                 optimizer.zero_grad()
 
