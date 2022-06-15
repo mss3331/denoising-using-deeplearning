@@ -102,7 +102,7 @@ if __name__ == '__main__':
     # Deeplabv3_GRU_CombineChannels_resnet50, Deeplabv3_GRU_ASPP_CombineChannels_resnet50, Deeplabv3_LSTM_resnet50]
     ########################### unet model #####################################################
     # [unet-proposed, GenSeg_IncludeX_max]
-    model_name = "unet-proposed"
+    model_name = "GenSeg_IncludeX_max"
     model = getModel(model_name)
 
     # Start WandB recording

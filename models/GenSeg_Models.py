@@ -42,12 +42,13 @@ class GenSeg_IncludeX(nn.Module):
         masks = self.Segmentor(X_and_generated_images)
         return generated_images, masks
 
-class GenSeg_IncludeX_max(GenSeg_IncludeX):
+class GenSeg_IncludeX_max(nn.Module):
     def __init__(self, Gen_Seg_arch=('unet','unet')):
-        super().__init__(Gen_Seg_arch)
+        super().__init__()
+        self.baseGenSeg_model = GenSeg_IncludeX()
 
     def forward(self,X, phase, truth_masks):
-        generated_images, predicted_masks = super().forward(X)
+        generated_images, predicted_masks = self.baseGenSeg_model(X)
         #predicted_masks = (2*N,2,H,W) i.e., original images masks and generated images masks
         if phase !='train':
             predicted_masks_X, predicted_masks_gen = catOrSplit(predicted_masks)
