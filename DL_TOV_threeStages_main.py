@@ -104,6 +104,8 @@ if __name__ == '__main__':
     # [unet-proposed, GenSeg_IncludeX_max]
     model_name = "GenSeg_IncludeX_max"
     model = getModel(model_name)
+    if model_name.find('GenSeg_IncludeX')>=0:
+        switch_epoch=[-1,-1]
 
     # Start WandB recording
     initializWandb()
