@@ -49,10 +49,12 @@ def repreducibility():
 
 
 def getModel(model_name):
-    if model_name=='unet-proposed':
+    if model_name.find('unet-proposed')>=0:
         model = unet_proposed()
-    elif model_name=='GenSeg_IncludeX_max':
-        model = GenSeg_IncludeX_max()
+    elif model_name.find('GenSeg_IncludeX_max')>=0:
+        #identify which models for Gen Seg
+        Gen_Seg_arch = model_name.split('_')[-2:]
+        model = GenSeg_IncludeX_max(Gen_Seg_arch)
     else:
         print('Model name unidentified')
         exit(-1)
@@ -81,7 +83,7 @@ if __name__ == '__main__':
     num_epochs = 300
     batch_size = 7
     shuffle = False
-    lamda = {"l2":20,"grad":20} #L2 and Grad
+    lamda = {"l2":1,"grad":10} #L2 and Grad
 
     # ************** modify for full experiment *************
     # load_to_RAM = True
@@ -101,8 +103,8 @@ if __name__ == '__main__':
     # [Deeplap_resnet50, Deeplap_resnet101, FCN_resnet50, FCN_resnet101, Deeplabv3_GRU_ASPP_resnet50,
     # Deeplabv3_GRU_CombineChannels_resnet50, Deeplabv3_GRU_ASPP_CombineChannels_resnet50, Deeplabv3_LSTM_resnet50]
     ########################### unet model #####################################################
-    # [unet-proposed, GenSeg_IncludeX_max]
-    model_name = "GenSeg_IncludeX_max"
+    # [unet-proposed, GenSeg_IncludeX_max_unet_unet,GenSeg_IncludeX_max_unet_deeplab]
+    model_name = "GenSeg_IncludeX_max_unet_deeplab"
     model = getModel(model_name)
     if model_name.find('GenSeg_IncludeX')>=0:
         switch_epoch=[-1,-1]

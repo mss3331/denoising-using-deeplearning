@@ -1,4 +1,5 @@
 import torch
+from models.DeepLabModels import Deeplabv3
 from torch import nn
 from models import MyModelV1, FCNModels, DeepLabModels, unet
 
@@ -9,13 +10,20 @@ from models import MyModelV1, FCNModels, DeepLabModels, unet
 (i.e., type of voting mechanism for generating masks for train/val/test phases).
  The signature of forward: forward(X, phase)-> (generated_images, mask)'''
 def getModel(model_name='unet', in_channels=3, out_channels=2):
-    model = unet.UNet(in_channels=in_channels,
+    if model_name=='deeplab':
+        model = Deeplabv3(num_classes=out_channels)
+    elif model_name == 'unet':
+        model = unet.UNet(in_channels=in_channels,
               out_channels=out_channels,
               n_blocks=4,
               activation='relu',
               normalization='batch',
               conv_mode='same',
               dim=2)
+    else:
+        print('unknnown model for the Gen Seg models')
+        exit(-1)
+
     return model
 
 def catOrSplit(tensor_s):
@@ -45,7 +53,7 @@ class GenSeg_IncludeX(nn.Module):
 class GenSeg_IncludeX_max(nn.Module):
     def __init__(self, Gen_Seg_arch=('unet','unet')):
         super().__init__()
-        self.baseGenSeg_model = GenSeg_IncludeX()
+        self.baseGenSeg_model = GenSeg_IncludeX(Gen_Seg_arch)
 
     def forward(self,X, phase, truth_masks):
         generated_images, predicted_masks = self.baseGenSeg_model(X)
