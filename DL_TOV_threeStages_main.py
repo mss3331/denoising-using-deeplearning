@@ -52,7 +52,7 @@ def getModel(model_name):
     if model_name=='unet-proposed':
         model = unet_proposed()
     elif model_name=='GenSeg_IncludeX_max':
-        model = GenSeg_IncludeX_max
+        model = GenSeg_IncludeX_max()
     else:
         print('Model name unidentified')
         exit(-1)
