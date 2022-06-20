@@ -56,8 +56,10 @@ def getModel(model_name):
         Gen_Seg_arch = model_name.split('_')[-2:]
         if model_name.find('_max')>=0:
             model = GenSeg_IncludeX_max(Gen_Seg_arch)
-        elif model_name.find('_conv')>=0:
+        elif model_name.find('_conv_')>=0:
             model = GenSeg_IncludeX_conv(Gen_Seg_arch)
+        elif model_name.find('_convV2')>=0:
+            model = GenSeg_IncludeX_convV2(Gen_Seg_arch)
         elif model_name.find('_avg_')>=0:
             model = GenSeg_IncludeX_avg(Gen_Seg_arch)
         elif model_name.find('_avgV2')>=0:
@@ -112,8 +114,9 @@ if __name__ == '__main__':
     # Deeplabv3_GRU_CombineChannels_resnet50, Deeplabv3_GRU_ASPP_CombineChannels_resnet50, Deeplabv3_LSTM_resnet50]
     ########################### unet model #####################################################
     # [unet-proposed, GenSeg_IncludeX_max_unet_unet,GenSeg_IncludeX_max_unet_deeplab,
-    # GenSeg_IncludeX_conv, GenSeg_IncludeX_avg, GenSeg_IncludeX_avgV2_unet_unet]
-    model_name = "GenSeg_IncludeX_avgV2_unet_unet"
+    # GenSeg_IncludeX_conv, GenSeg_IncludeX_avg, GenSeg_IncludeX_avgV2_unet_unet,
+    # GenSeg_IncludeX_convV2_unet_unet]
+    model_name = "GenSeg_IncludeX_convV2_unet_unet"
     model = getModel(model_name)
     if model_name.find('GenSeg_IncludeX')>=0:
         switch_epoch=[-1,-1]
