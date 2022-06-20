@@ -68,8 +68,25 @@ class GenSeg_IncludeX_max(nn.Module):
 
         return generated_images, predicted_masks, truth_masks
 
+class GenSeg_IncludeX_conv(nn.Module):
+    def __init__(self, Gen_Seg_arch=('unet','unet')):
+        super().__init__()
+        self.baseGenSeg_model = GenSeg_IncludeX(Gen_Seg_arch)
+        self.combine_masks_conv = nn.Conv2d(in_channels=4,out_channels=2,kernel_size=3,padding='same')
 
+    def forward(self,X, phase, truth_masks):
+        generated_images, predicted_masks = self.baseGenSeg_model(X)
+        #predicted_masks = (2*N,2,H,W) i.e., original images masks and generated images masks
 
+        predicted_masks_X, predicted_masks_gen = catOrSplit(predicted_masks)
+        #the results would be (N,2+2,H,W)
+        generated_X_masks_cat = torch.cat((predicted_masks_gen, predicted_masks_X), dim=1)
+        predicted_masks = self.combine_masks_conv(generated_X_masks_cat)#(N,4,H,W)=>(N,2,H,W)
+
+        return generated_images, predicted_masks, truth_masks
+
+# this is the default model. Including the original images with the corresponding mask is done in the
+#training loop
 def unet_proposed():
     generator = unet.UNet(in_channels=3,
                           out_channels=3,

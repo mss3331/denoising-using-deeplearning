@@ -14,7 +14,7 @@ from Metrics import *
 from models import MyModelV1, FCNModels, DeepLabModels, unet
 import torch
 from MyDataloaders_denoising import getDataloadersDic
-from models.GenSeg_Models import GenSeg_IncludeX_max, unet_proposed
+from models.GenSeg_Models import GenSeg_IncludeX_max, unet_proposed, GenSeg_IncludeX_conv
 from torch import nn
 from Training import *
 from torchvision import datasets
@@ -51,10 +51,14 @@ def repreducibility():
 def getModel(model_name):
     if model_name.find('unet-proposed')>=0:
         model = unet_proposed()
-    elif model_name.find('GenSeg_IncludeX_max')>=0:
+    elif model_name.find('IncludeX')>=0:
         #identify which models for Gen Seg
         Gen_Seg_arch = model_name.split('_')[-2:]
-        model = GenSeg_IncludeX_max(Gen_Seg_arch)
+        if model_name.find('_max')>=0:
+            model = GenSeg_IncludeX_max(Gen_Seg_arch)
+        elif model_name.find('_conv')>=0:
+            model = GenSeg_IncludeX_conv(Gen_Seg_arch)
+
     else:
         print('Model name unidentified')
         exit(-1)
@@ -103,8 +107,8 @@ if __name__ == '__main__':
     # [Deeplap_resnet50, Deeplap_resnet101, FCN_resnet50, FCN_resnet101, Deeplabv3_GRU_ASPP_resnet50,
     # Deeplabv3_GRU_CombineChannels_resnet50, Deeplabv3_GRU_ASPP_CombineChannels_resnet50, Deeplabv3_LSTM_resnet50]
     ########################### unet model #####################################################
-    # [unet-proposed, GenSeg_IncludeX_max_unet_unet,GenSeg_IncludeX_max_unet_deeplab]
-    model_name = "GenSeg_IncludeX_max_unet_deeplab"
+    # [unet-proposed, GenSeg_IncludeX_max_unet_unet,GenSeg_IncludeX_max_unet_deeplab,GenSeg_IncludeX_conv]
+    model_name = "GenSeg_IncludeX_conv_unet_unet"
     model = getModel(model_name)
     if model_name.find('GenSeg_IncludeX')>=0:
         switch_epoch=[-1,-1]
