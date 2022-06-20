@@ -84,6 +84,21 @@ class GenSeg_IncludeX_conv(nn.Module):
         predicted_masks = self.combine_masks_conv(generated_X_masks_cat)#(N,4,H,W)=>(N,2,H,W)
 
         return generated_images, predicted_masks, truth_masks
+class GenSeg_IncludeX_avg(nn.Module):
+    def __init__(self, Gen_Seg_arch=('unet','unet')):
+        super().__init__()
+        self.baseGenSeg_model = GenSeg_IncludeX(Gen_Seg_arch)
+
+    def forward(self,X, phase, truth_masks):
+        generated_images, predicted_masks = self.baseGenSeg_model(X)
+        #predicted_masks = (2*N,2,H,W) i.e., original images masks and generated images masks
+
+        predicted_masks_X, predicted_masks_gen = catOrSplit(predicted_masks)
+        #the results would be (N,C,[orig gen],H,W)
+        generated_X_masks_stacked = torch.stack((predicted_masks_gen, predicted_masks_X), dim=2)
+        predicted_masks = generated_X_masks_stacked.mean(dim=2)
+
+        return generated_images, predicted_masks, truth_masks
 
 # this is the default model. Including the original images with the corresponding mask is done in the
 #training loop
