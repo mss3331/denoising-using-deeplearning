@@ -114,7 +114,7 @@ class GenSeg_IncludeX_avgV2(nn.Module):
             predicted_masks_X, predicted_masks_gen = catOrSplit(predicted_masks)
             # the results would be (N,C,[orig gen],H,W)
             generated_X_masks_stacked = torch.stack((predicted_masks_gen, predicted_masks_X), dim=2)
-            predicted_masks, _ = generated_X_masks_stacked.mean(dim=2)
+            predicted_masks= generated_X_masks_stacked.mean(dim=2)
         else:  # if it is train, double the number of labels to be (2*N,2,H,W)
             truth_masks = catOrSplit([truth_masks, truth_masks])
 
