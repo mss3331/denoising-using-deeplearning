@@ -49,11 +49,12 @@ def repreducibility():
 
 
 def getModel(model_name):
+    # identify which models for Gen Seg
+    Gen_Seg_arch = model_name.split('_')[-2:]
+
     if model_name.find('unet-proposed')>=0:
         model = unet_proposed()
     elif model_name.find('IncludeX')>=0:
-        #identify which models for Gen Seg
-        Gen_Seg_arch = model_name.split('_')[-2:]
         if model_name.find('_max')>=0:
             model = GenSeg_IncludeX_max(Gen_Seg_arch)
         elif model_name.find('_conv_')>=0:
@@ -64,7 +65,9 @@ def getModel(model_name):
             model = GenSeg_IncludeX_avg(Gen_Seg_arch)
         elif model_name.find('_avgV2')>=0:
             model = GenSeg_IncludeX_avgV2(Gen_Seg_arch)
-
+    elif model_name.find('Conventional')>=0:
+        if model_name.find('avgV2_blure')>=0:
+            model = GenSeg_IncludeX_Conventional_avgV2_blure(Gen_Seg_arch)
     else:
         print('Model name unidentified')
         exit(-1)
@@ -116,7 +119,8 @@ if __name__ == '__main__':
     # [unet-proposed, GenSeg_IncludeX_max_unet_unet,GenSeg_IncludeX_max_unet_deeplab,
     # GenSeg_IncludeX_conv, GenSeg_IncludeX_avg, GenSeg_IncludeX_avgV2_unet_unet,
     # GenSeg_IncludeX_convV2_unet_unet]
-    model_name = "GenSeg_IncludeX_convV2_unet_unet"
+    # Conventional Segmentor models [GenSeg_IncludeX_Conventional_avgV2_blure_unet]
+    model_name = "GenSeg_IncludeX_Conventional_avgV2_blure_unet"
     model = getModel(model_name)
     if model_name.find('GenSeg_IncludeX')>=0:
         switch_epoch=[-1,-1]
