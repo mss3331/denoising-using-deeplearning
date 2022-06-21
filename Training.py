@@ -546,6 +546,7 @@ def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loa
             loss_mask_batches = []
             iou_batches = []
             original_images_grad = []
+            generated_images_grad = []
 
             pbar = tqdm(data_loader_dic[phase], total=len(data_loader_dic[phase]))
             for X, intermediate, original_masks in pbar:
@@ -600,7 +601,7 @@ def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loa
                     loss_mask_batches.append(loss_mask.clone().detach().cpu().numpy())
                     iou_batches.append(iou)
                     original_images_grad.append(color_gradient(X).clone().detach().cpu().numpy())
-
+                    generated_images_grad.append(color_gradient(generated_images).clone().detach().cpu().numpy())
                     if phase == 'train':
                         loss.backward()
                         optimizer.step()
@@ -657,7 +658,8 @@ def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loa
             wandb.log({phase + "_loss": np.mean(loss_batches),
                        phase + "_L2": np.mean(loss_l2_batches), phase + "_grad": np.mean(loss_grad_batches),
                        phase + '_BCE_loss': np.mean(loss_mask_batches), phase + '_iou': np.mean(iou_batches),
-                       phase + '_original_images_grad': np.mean(original_images_grad), "best_val_loss": best_loss['val'],
+                       phase + '_original_images_grad': np.mean(original_images_grad), phase + '_generated_images_grad': np.mean(generated_images_grad),
+                       "best_val_loss": best_loss['val'],
                        'best_val_iou': best_iou['val'], phase + "_epoch": epoch},
                       step=epoch)
 
