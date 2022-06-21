@@ -42,7 +42,11 @@ class GenSeg_IncludeX(nn.Module):
     def __init__(self, Gen_Seg_arch=('unet','unet')):
         super().__init__()
         base = getModel(Gen_Seg_arch[0],out_channels=3)
-        self.Generator = nn.Sequential(base, nn.Sigmoid())
+
+        if isinstance(Gen_Seg_arch[0], str):  # it means Gen_Seg_arch[0]='unet' or 'deeplab' ... etc
+            self.Generator = nn.Sequential(base, nn.Sigmoid())
+        else:  # it means Gen_Seg_arch[0]=torchvision.transforms.GaussianBlur (i.e., Conventional Aug)
+            self.Generator = base
         self.Segmentor = getModel(Gen_Seg_arch[1])
 
     def forward(self,X):

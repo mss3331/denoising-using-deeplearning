@@ -124,6 +124,9 @@ if __name__ == '__main__':
     model = getModel(model_name)
     if model_name.find('GenSeg_IncludeX')>=0:
         switch_epoch=[-1,-1]
+    if model_name.find('Conventional')>=0:
+        #we don't have Generator here, hence, nothing to optimize
+        lamda = {"l2": 0, "grad": 0}
 
     # Start WandB recording
     initializWandb()
