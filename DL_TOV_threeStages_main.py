@@ -54,6 +54,9 @@ def getModel(model_name):
 
     if model_name.find('unet-proposed')>=0:
         model = unet_proposed()
+    elif model_name.find('Conventional') >= 0:
+        if model_name.find('avgV2_blure') >= 0:
+            model = GenSeg_IncludeX_Conventional_avgV2_blure(Gen_Seg_arch)
     elif model_name.find('IncludeX')>=0:
         if model_name.find('_max')>=0:
             model = GenSeg_IncludeX_max(Gen_Seg_arch)
@@ -65,9 +68,6 @@ def getModel(model_name):
             model = GenSeg_IncludeX_avg(Gen_Seg_arch)
         elif model_name.find('_avgV2')>=0:
             model = GenSeg_IncludeX_avgV2(Gen_Seg_arch)
-    elif model_name.find('Conventional')>=0:
-        if model_name.find('avgV2_blure')>=0:
-            model = GenSeg_IncludeX_Conventional_avgV2_blure(Gen_Seg_arch)
     else:
         print('Model name unidentified')
         exit(-1)
