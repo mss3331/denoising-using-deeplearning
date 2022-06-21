@@ -190,13 +190,12 @@ class GenSeg_IncludeX_Conventional_avgV2_blure(nn.Module):
 
         return generated_images, predicted_masks, truth_masks
 
-class GenSeg_IncludeX_Conventional_avgV2_hue(nn.Module):
-    #It is similar to GenSeg_IncludeX_max class, in which the segmentor trained on generated
+class GenSeg_IncludeX_Conventional_avgV2_colorjitter(nn.Module):
     #image as if it is original images, meanwhile, the val and test average is applied
     def __init__(self, Gen_Seg_arch=('unet','unet')):
         super().__init__()
         #the Generator here is simply bluring
-        Gen_Seg_arch[0] = torchvision.transforms.GaussianBlur(kernel_size=5, sigma=(0.1, 2.0))
+        Gen_Seg_arch[0] = torchvision.ColorJitter(brightness=.5, hue=.3)
         self.baseGenSeg_model = GenSeg_IncludeX(Gen_Seg_arch)
 
     def forward(self,X, phase, truth_masks):
