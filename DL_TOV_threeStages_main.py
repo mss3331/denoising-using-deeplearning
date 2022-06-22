@@ -57,12 +57,16 @@ def getModel(model_name):
     elif model_name.find('Conventional') >= 0:
         if model_name.find('avgV2_blure') >= 0:
             model = GenSeg_IncludeX_Conventional_avgV2_blure(Gen_Seg_arch)
-        if model_name.find('avgV2_colorjitter') >= 0:
+        elif model_name.find('avgV2_colorjitter') >= 0:
             model = GenSeg_IncludeX_Conventional_avgV2_colorjitter(Gen_Seg_arch)
-        if model_name.find('avgV2_hue') >= 0:
+        elif model_name.find('avgV2_hue') >= 0:
             model = GenSeg_IncludeX_Conventional_avgV2_hue(Gen_Seg_arch)
-        if model_name.find('avgV2_brightness') >= 0:
+        elif model_name.find('avgV2_brightness') >= 0:
             model = GenSeg_IncludeX_Conventional_avgV2_brightness(Gen_Seg_arch)
+        elif model_name.find('Conventional_colorjitter') >= 0:
+            model = GenSeg_IncludeX_Conventional_colorjitter(Gen_Seg_arch)
+        elif model_name.find('Conventional_blure') >= 0:
+            model = GenSeg_IncludeX_Conventional_blure(Gen_Seg_arch)
     elif model_name.find('IncludeX')>=0:
         if model_name.find('_max')>=0:
             model = GenSeg_IncludeX_max(Gen_Seg_arch)
@@ -122,13 +126,16 @@ if __name__ == '__main__':
     # [Deeplap_resnet50, Deeplap_resnet101, FCN_resnet50, FCN_resnet101, Deeplabv3_GRU_ASPP_resnet50,
     # Deeplabv3_GRU_CombineChannels_resnet50, Deeplabv3_GRU_ASPP_CombineChannels_resnet50, Deeplabv3_LSTM_resnet50]
     ########################### unet model #####################################################
+    ################### Proposed
     # [unet-proposed, GenSeg_IncludeX_max_unet_unet,GenSeg_IncludeX_max_unet_deeplab,
     # GenSeg_IncludeX_conv, GenSeg_IncludeX_avg, GenSeg_IncludeX_avgV2_unet_unet,
     # GenSeg_IncludeX_convV2_unet_unet]
-    # Conventional Segmentor models (i.e., online augmentation)
+    #################### Conventional Segmentor models (i.e., online augmentation) with avgV2
     # [GenSeg_IncludeX_Conventional_avgV2_blure_unet, GenSeg_IncludeX_Conventional_avgV2_colorjitter_unet
     # GenSeg_IncludeX_Conventional_avgV2_hue_unet, GenSeg_IncludeX_Conventional_avgV2_brightness_unet]
-    model_name = "GenSeg_IncludeX_Conventional_avgV2_hue_unet"
+    #################### Conventional Segmentor models (i.e., online augmentation) without avgV2 (i.e., Typical augmentation usage)
+    #[GenSeg_IncludeX_Conventional_colorjitter
+    model_name = "GenSeg_IncludeX_Conventional_colorjitter_unet"
     model = getModel(model_name)
     if model_name.find('GenSeg_IncludeX')>=0:
         switch_epoch=[-1,-1]
