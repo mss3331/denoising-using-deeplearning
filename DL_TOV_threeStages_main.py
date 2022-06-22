@@ -59,6 +59,10 @@ def getModel(model_name):
             model = GenSeg_IncludeX_Conventional_avgV2_blure(Gen_Seg_arch)
         if model_name.find('avgV2_colorjitter') >= 0:
             model = GenSeg_IncludeX_Conventional_avgV2_colorjitter(Gen_Seg_arch)
+        if model_name.find('avgV2_hue') >= 0:
+            model = GenSeg_IncludeX_Conventional_avgV2_hue(Gen_Seg_arch)
+        if model_name.find('avgV2_brightness') >= 0:
+            model = GenSeg_IncludeX_Conventional_avgV2_brightness(Gen_Seg_arch)
     elif model_name.find('IncludeX')>=0:
         if model_name.find('_max')>=0:
             model = GenSeg_IncludeX_max(Gen_Seg_arch)
@@ -122,8 +126,9 @@ if __name__ == '__main__':
     # GenSeg_IncludeX_conv, GenSeg_IncludeX_avg, GenSeg_IncludeX_avgV2_unet_unet,
     # GenSeg_IncludeX_convV2_unet_unet]
     # Conventional Segmentor models (i.e., online augmentation)
-    # [GenSeg_IncludeX_Conventional_avgV2_blure_unet, GenSeg_IncludeX_Conventional_avgV2_colorjitter_unet]
-    model_name = "GenSeg_IncludeX_Conventional_avgV2_colorjitter_unet"
+    # [GenSeg_IncludeX_Conventional_avgV2_blure_unet, GenSeg_IncludeX_Conventional_avgV2_colorjitter_unet
+    # GenSeg_IncludeX_Conventional_avgV2_hue_unet, GenSeg_IncludeX_Conventional_avgV2_brightness_unet]
+    model_name = "GenSeg_IncludeX_Conventional_avgV2_hue_unet"
     model = getModel(model_name)
     if model_name.find('GenSeg_IncludeX')>=0:
         switch_epoch=[-1,-1]
