@@ -82,6 +82,9 @@ def getModel(model_name):
             model = GenSeg_IncludeX_avg(Gen_Seg_arch)
         elif model_name.find('_avgV2')>=0:
             model = GenSeg_IncludeX_avgV2(Gen_Seg_arch)
+        elif model_name.find('_NoCombining')>=0:
+            model = GenSeg_IncludeX_NoCombining(Gen_Seg_arch)
+
     else:
         print('Model name unidentified')
         exit(-1)
@@ -140,7 +143,7 @@ if __name__ == '__main__':
     #################### Conventional Segmentor models (i.e., online augmentation) without avgV2 (i.e., Typical augmentation usage)
     #[GenSeg_IncludeX_Conventional_colorjitter_unet, GenSeg_IncludeX_Conventional_blure_unet,
     # GenSeg_IncludeX_Conventional_hue_unet, GenSeg_IncludeX_Conventional_brightness_unet]
-    model_name = "GenSeg_IncludeX_Conventional_blure_unet"
+    model_name = "GenSeg_IncludeX_NoCombining_unet_unet"
     model = getModel(model_name)
     if model_name.find('GenSeg_IncludeX')>=0:
         switch_epoch=[-1,-1]
