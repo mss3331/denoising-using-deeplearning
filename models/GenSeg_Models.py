@@ -144,6 +144,27 @@ class GenSeg_IncludeX_avgV2(nn.Module):
 
         return generated_images, predicted_masks, truth_masks
 
+class GenSeg_IncludeX_ColorJitterGenerator_avgV2(nn.Module):
+    # We increase the challenge for the Generator to reconstructed a corrupted images (i.e., augmented).
+    def __init__(self, Gen_Seg_arch=('unet','unet')):
+        super().__init__()
+        Gen_Seg_arch[0] = nn.Sequential( torchvision.transforms.ColorJitter(brightness=.5, hue=.3),
+                                         getModel(Gen_Seg_arch[0],out_channels=3) )
+        self.baseGenSeg_model = GenSeg_IncludeX(Gen_Seg_arch)
+
+    def forward(self,X, phase, truth_masks):
+        generated_images, predicted_masks = self.baseGenSeg_model(X)
+        #predicted_masks = (2*N,2,H,W) i.e., original images masks and generated images masks
+
+        if phase != 'train':
+            predicted_masks_X, predicted_masks_gen = catOrSplit(predicted_masks)
+            # the results would be (N,C,[orig gen],H,W)
+            generated_X_masks_stacked = torch.stack((predicted_masks_gen, predicted_masks_X), dim=2)
+            predicted_masks= generated_X_masks_stacked.mean(dim=2)
+        else:  # if it is train, double the number of labels to be (2*N,2,H,W)
+            truth_masks = catOrSplit([truth_masks, truth_masks])
+
+        return generated_images, predicted_masks, truth_masks
 class GenSeg_IncludeX_NoCombining(nn.Module):
     #It is similar to GenSeg_IncludeX_max class, in which the segmentor trained on generated
     #image as if it is original images, meanwhile, the val and test average is applied
