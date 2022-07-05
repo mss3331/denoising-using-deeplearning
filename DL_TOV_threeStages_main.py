@@ -13,7 +13,7 @@ from MyDataloaders import *
 from Metrics import *
 from models import MyModelV1, FCNModels, DeepLabModels, unet
 import torch
-from MyDataloaders_denoising import getDataloadersDic
+from MyDataloaders_denoising import getLoadersBySetName
 from models.GenSeg_Models import *
 from torch import nn
 from Training import *
@@ -106,6 +106,7 @@ if __name__ == '__main__':
     number_classes = 3  # output channels should be one mask for binary class
     switch_epoch = [50,150] # when to switch to the next training stage?
     run_in_colab = True
+
     root_dir = r"E:\Databases\dummyDataset\train"
     child_dir = "data_C1"
     imageDir = 'images_C1'
@@ -160,17 +161,26 @@ if __name__ == '__main__':
     initializWandb()
     print("Experiment name:",experiment_name)
     print("epochs {} batch size {}".format(num_epochs, batch_size))
-
-    dataset_info = [(root_dir, child_dir, imageDir, maskDir, target_img_size)]#,
-                    #("/content/trainData_EndoCV2021_5_Feb2021","data_C2","images_C2","mask_C2",target_img_size)]
-    dataloder_info = (train_val_ratio,batch_size, shuffle)
-    Dataloaders_dic = getDataloadersDic(dataset_info, dataloder_info)
-
-    dataset_info = ("/content/trainData_EndoCV2021_5_Feb2021", child_dir, imageDir, maskDir, target_img_size)
-    dataloder_info = (0.01,batch_size, shuffle) # from 0:(0.01*datasize) will be for val the rest for test
-    Dataloaders_test_dic = getDataloadersDic(dataset_info, dataloder_info)
-    Dataloaders_dic['test']=Dataloaders_test_dic['val']
-
+############## This is an old code to create train/val/test
+    # dataset_info = [(root_dir, child_dir, imageDir, maskDir, target_img_size)]#,
+    #                 #("/content/trainData_EndoCV2021_5_Feb2021","data_C2","images_C2","mask_C2",target_img_size)]
+    # dataloder_info = (train_val_ratio,batch_size, shuffle)
+    # Dataloaders_dic = getDataloadersDic(dataset_info, dataloder_info)
+    #
+    # dataset_info = ("/content/trainData_EndoCV2021_5_Feb2021", child_dir, imageDir, maskDir, target_img_size)
+    # dataloder_info = (0.01,batch_size, shuffle) # from 0:(0.01*datasize) will be for val the rest for test
+    # Dataloaders_test_dic = getDataloadersDic(dataset_info, dataloder_info)
+    # Dataloaders_dic['test']=Dataloaders_test_dic['val']
+    #dataset_name = [Kvasir_Seg*5, CVC_ClinicDB*1 ,ETIS_Larib*1, EndoCV*5] 5= data_C1, data_C2 ... data_C5
+    Dataloaders_dic= {}
+    dataloasers = getLoadersBySetName('CVC_ClinicDB', 'data_C1',target_img_size, train_val_ratio)
+    Dataloaders_dic['train'], Dataloaders_dic['val'] = dataloasers
+    _ , Dataloaders_dic['test1'] = getLoadersBySetName('Kvasir_Seg', 'data_C1', target_img_size, train_val_ratio=0)
+    _, Dataloaders_dic['test2'] = getLoadersBySetName('Kvasir_Seg', 'data_C2', target_img_size, train_val_ratio=0)
+    _, Dataloaders_dic['test3'] = getLoadersBySetName('Kvasir_Seg', 'data_C3', target_img_size, train_val_ratio=0)
+    _, Dataloaders_dic['test4'] = getLoadersBySetName('Kvasir_Seg', 'data_C4', target_img_size, train_val_ratio=0)
+    _, Dataloaders_dic['test5'] = getLoadersBySetName('Kvasir_Seg', 'data_C5', target_img_size, train_val_ratio=0)
+    print('datasets in total:',Dataloaders_dic.keys())
     print("training images:", len(Dataloaders_dic['train'].dataset))
     print("val images:", len(Dataloaders_dic['val'].dataset))
     print("test images:", len(Dataloaders_dic['test'].dataset))
