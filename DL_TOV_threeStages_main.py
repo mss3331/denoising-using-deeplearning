@@ -181,9 +181,9 @@ if __name__ == '__main__':
     _, Dataloaders_dic['test4'] = getLoadersBySetName('Kvasir_Seg', 'data_C4', target_img_size, train_val_ratio=0)
     _, Dataloaders_dic['test5'] = getLoadersBySetName('Kvasir_Seg', 'data_C5', target_img_size, train_val_ratio=0)
     print('datasets in total:',Dataloaders_dic.keys())
-    print("training images:", len(Dataloaders_dic['train'].dataset))
-    print("val images:", len(Dataloaders_dic['val'].dataset))
-    print("test images:", len(Dataloaders_dic['test'].dataset))
+    for phase in Dataloaders_dic.keys():
+        print(f"{phase} images:{len(Dataloaders_dic[phase].dataset)}")
+
     print("model name:", model_name)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
