@@ -1,5 +1,4 @@
 import torch, torchvision
-from models.DeepLabModels import Deeplabv3
 from torch import nn
 from models import MyModelV1, FCNModels, DeepLabModels, unet
 
@@ -13,7 +12,9 @@ def getModel(model_name='unet', in_channels=3, out_channels=2):
     if not isinstance(model_name,str):
         return model_name #it means that model_name=torchvision.transforms.Augmentation or nn.Identity or something else
     if model_name=='deeplab':
-        model = Deeplabv3(num_classes=out_channels)
+        model = DeepLabModels.Deeplabv3(num_classes=out_channels)
+    elif model_name == 'fcn':
+        model = FCNModels.FCN(num_classes=out_channels)
     elif model_name == 'unet':
         model = unet.UNet(in_channels=in_channels,
               out_channels=out_channels,
@@ -323,6 +324,7 @@ class GenSeg_IncludeX_Conventional_avgV2_brightness(nn.Module):
 
         return generated_images, predicted_masks, truth_masks
 
+########################################################################################################
 ################## the following have only augmentation in the train (typical usage of Augmentation) #################
 class GenSeg_IncludeX_Conventional_colorjitter(nn.Module):
     #image as if it is original images, meanwhile, the val and test average is applied
@@ -386,7 +388,7 @@ class GenSeg_IncludeX_Conventional_hue(nn.Module):
 
 class GenSeg_IncludeX_Conventional_brightness(nn.Module):
     #image as if it is original images, meanwhile, the val and test average is applied
-    def __init__(self, Gen_Seg_arch=('unet','unet')):
+    def __init__(self, Gen_Seg_arch=(None,'unet')):
         super().__init__()
         #the Generator here is simply bluring
         Gen_Seg_arch[0] = torchvision.transforms.ColorJitter(brightness=.5)
@@ -401,5 +403,20 @@ class GenSeg_IncludeX_Conventional_brightness(nn.Module):
             predicted_masks = predicted_masks_X
         else:  # if it is train, double the number of labels to be (2*N,2,H,W)
             truth_masks = catOrSplit([truth_masks, truth_masks])
+
+        return generated_images, predicted_masks, truth_masks
+
+########################################################################################################
+################## Vanilla SOTA models (i.e., no augmentation at all #################
+class GenSeg_Vanilla(nn.Module):
+    #image as if it is original images, meanwhile, the val and test average is applied
+    def __init__(self, Gen_Seg_arch=(None,'unet')):
+        super().__init__()
+        #the Generator here is simply bluring
+        self.model = getModel(Gen_Seg_arch[1])
+
+    def forward(self,X, phase, truth_masks):
+        predicted_masks = self.model(X)
+        generated_images = X
 
         return generated_images, predicted_masks, truth_masks

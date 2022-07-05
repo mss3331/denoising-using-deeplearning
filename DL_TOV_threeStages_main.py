@@ -88,6 +88,8 @@ def getModel(model_name):
             model = GenSeg_IncludeX_ColorJitterGenerator_avgV2(Gen_Seg_arch)
         elif model_name.find('ColorJitterGeneratorTrainOnly_avgV2')>=0:
             model = GenSeg_IncludeX_ColorJitterGeneratorTrainOnly_avgV2(Gen_Seg_arch)
+        elif model_name.find('Vanilla') >= 0:
+            model = GenSeg_Vanilla(Gen_Seg_arch)
 
     else:
         print('Model name unidentified')
@@ -149,11 +151,13 @@ if __name__ == '__main__':
     #################### Conventional Segmentor models (i.e., online augmentation) without avgV2 (i.e., Typical augmentation usage)
     #[GenSeg_IncludeX_Conventional_colorjitter_unet, GenSeg_IncludeX_Conventional_blure_unet,
     # GenSeg_IncludeX_Conventional_hue_unet, GenSeg_IncludeX_Conventional_brightness_unet]
-    model_name = "GenSeg_IncludeX_avgV2_unet_unet"
+    ################### Vanilla models (i.e., no generator and no augmentation #######################
+    #['GenSeg_Vanilla_none_unet', GenSeg_Vanilla_none_fcn, GenSeg_Vanilla_none_deeplab]
+    model_name = "GenSeg_Vanilla_none_unet"
     model = getModel(model_name)
-    if model_name.find('GenSeg_IncludeX')>=0:
+    if model_name.find('GenSeg')>=0:
         switch_epoch=[-1,-1]
-    if model_name.find('Conventional')>=0:
+    if model_name.find('Conventional')>=0 or model_name.find('Vanilla')>=0:
         #we don't have Generator here, hence, nothing to optimize
         lamda = {"l2": 0, "grad": 0}
 
