@@ -526,7 +526,7 @@ def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loa
     for epoch in range(0, num_epochs + 1):
 
         for phase in data_loader_dic.keys():
-            if phase == 'test' and best_iou_epoch!=epoch: #skip testing if no better iou val achieved
+            if phase.find('test')>=0 and best_iou_epoch != epoch: #skip testing if no better iou val achieved
                 continue
             if phase == 'train':
                 model.train()
@@ -626,8 +626,8 @@ def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loa
                                   'original_images_grad': np.mean(original_images_grad),
                                   'best_val_loss': best_loss['val'],
                                   'best_val_iou': best_iou['val'],
-                                  'best_test_loss': best_loss['test'],
-                                  'best_test_iou': best_iou['test'],
+                                  'best_test_loss': best_loss['test1'],
+                                  'best_test_iou': best_iou['test1'],
                                   })
             if phase != 'train':
                 if np.mean(loss_batches) < best_loss[phase]:
@@ -646,13 +646,14 @@ def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loa
                         best_iou_epoch = epoch
                         print('best val_iou')
                         print('testing on a test set....\n')
-                if phase=='test':#if we reach inside this, it means we achieved a better val iou
+                if phase.find('test')>=0:#if we reach inside this, it means we achieved a better val iou
                     print('saving a checkpoint')
-                    best_iou['test'] = np.mean(iou_batches)
-                    best_loss['test'] = np.mean(loss_batches)
-                    saving_checkpoint(epoch, model, optimizer,
-                                      best_loss['val'], best_loss['test'],
-                                      best_iou['val'], best_iou['test'],
+                    best_iou[phase] = np.mean(iou_batches)
+                    best_loss[phase] = np.mean(loss_batches)
+                    if phase == 'test1': #I want to save the model weights only once, not for every test set
+                        saving_checkpoint(epoch, model, optimizer,
+                                      best_loss['val'], best_loss['test1'],
+                                      best_iou['val'], best_iou['test1'],
                                       colab_dir, model_name)
 
             wandb.log({phase + "_loss": np.mean(loss_batches),

@@ -149,7 +149,7 @@ if __name__ == '__main__':
     #################### Conventional Segmentor models (i.e., online augmentation) without avgV2 (i.e., Typical augmentation usage)
     #[GenSeg_IncludeX_Conventional_colorjitter_unet, GenSeg_IncludeX_Conventional_blure_unet,
     # GenSeg_IncludeX_Conventional_hue_unet, GenSeg_IncludeX_Conventional_brightness_unet]
-    model_name = "GenSeg_IncludeX_ColorJitterGenerator_avgV2_unet_unet"
+    model_name = "GenSeg_IncludeX_avgV2_unet_unet"
     model = getModel(model_name)
     if model_name.find('GenSeg_IncludeX')>=0:
         switch_epoch=[-1,-1]
