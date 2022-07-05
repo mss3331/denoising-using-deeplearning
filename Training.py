@@ -99,6 +99,10 @@ def training_loop(num_epochs, optimizer, lamda, model, loss_fn, data_loader_dic,
                       step=epoch)
 
 def show2(generated_images, X, generated_mask,true_mask, phase, index, save,save_all=(False,-1),limit=5):
+    if phase[-1].isnumeric():
+        if int(phase[-1]) != 1:
+            return
+
     original_imgs = X
     if not generated_mask.shape == original_imgs.shape:
         generated_mask = generated_mask.repeat(1, 3, 1, 1)
