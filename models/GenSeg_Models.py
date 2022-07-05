@@ -369,7 +369,7 @@ class GenSeg_IncludeX_Conventional_hue(nn.Module):
     def __init__(self, Gen_Seg_arch=('unet','unet')):
         super().__init__()
         #the Generator here is simply bluring
-        Gen_Seg_arch[0] = torchvision.transforms.ColorJitter(hue=.3)
+        Gen_Seg_arch[0] = torchvision.transforms.ColorJitter(hue=.1)
         self.baseGenSeg_model = GenSeg_IncludeX(Gen_Seg_arch)
 
     def forward(self,X, phase, truth_masks):
