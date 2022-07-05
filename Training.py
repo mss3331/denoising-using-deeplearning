@@ -560,7 +560,7 @@ def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loa
                 X = X.to(device).float()
                 intermediate = intermediate.to(device).float()  # intermediate is the mask with type of float
                 original_masks = original_masks.to(device)#this is 2 channels mask
-                if model_name.find('GenSeg_IncludeX')>=0:
+                if model_name.find('GenSeg')>=0:
                     results = model(X,phase,original_masks)
                     generated_images, generated_masks, original_masks = results
                 else:#the old version code i.e., other than GenSeg_IncludeX models

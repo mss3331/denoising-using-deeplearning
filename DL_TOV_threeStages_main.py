@@ -88,8 +88,8 @@ def getModel(model_name):
             model = GenSeg_IncludeX_ColorJitterGenerator_avgV2(Gen_Seg_arch)
         elif model_name.find('ColorJitterGeneratorTrainOnly_avgV2')>=0:
             model = GenSeg_IncludeX_ColorJitterGeneratorTrainOnly_avgV2(Gen_Seg_arch)
-        elif model_name.find('Vanilla') >= 0:
-            model = GenSeg_Vanilla(Gen_Seg_arch)
+    elif model_name.find('Vanilla') >= 0:
+        model = GenSeg_Vanilla(Gen_Seg_arch)
 
     else:
         print('Model name unidentified')
