@@ -92,7 +92,8 @@ def getModel(model_name):
             if model_name.find('avgV2')>=0:
                 model = GenSeg_IncludeAugX_avgV2(Gen_Seg_arch)
     elif model_name.find('Vanilla') >= 0:
-        model = GenSeg_Vanilla(Gen_Seg_arch)
+        pretrained = model_name.find('TL')>=0
+        model = GenSeg_Vanilla(Gen_Seg_arch,pretrained)
 
     else:
         print('Model name unidentified')
@@ -155,9 +156,11 @@ if __name__ == '__main__':
     #################### Conventional Segmentor models (i.e., online augmentation) without avgV2 (i.e., Typical augmentation usage)
     #[GenSeg_IncludeX_Conventional_colorjitter_unet, GenSeg_IncludeX_Conventional_blure_unet,
     # GenSeg_IncludeX_Conventional_hue_unet, GenSeg_IncludeX_Conventional_brightness_unet]
-    ################### Vanilla models (i.e., no generator and no augmentation #######################
+    ################### Vanilla models (i.e., no generator and no augmentation) #######################
+    #                 Transfere Learning for vanilla models are added except for Unet
     #['GenSeg_Vanilla_none_unet', GenSeg_Vanilla_none_fcn, GenSeg_Vanilla_none_deeplab]
-    model_name = "GenSeg_IncludeAugX_avgV2_unet_unet"
+    #[GenSeg_Vanilla_TL_fcn, GenSeg_Vanilla_TL_deeplab]
+    model_name = "GenSeg_Vanilla_TL_deeplab"
     model = getModel(model_name)
     if model_name.find('GenSeg')>=0:
         switch_epoch=[-1,-1]

@@ -8,13 +8,13 @@ from models import MyModelV1, FCNModels, DeepLabModels, unet
 3- Flexibility at handling the original images and generated images with respect to the final mask
 (i.e., type of voting mechanism for generating masks for train/val/test phases).
  The signature of forward: forward(X, phase)-> (generated_images, mask)'''
-def getModel(model_name='unet', in_channels=3, out_channels=2):
+def getModel(model_name='unet', in_channels=3, out_channels=2,pretrianed=False):
     if not isinstance(model_name,str):
         return model_name #it means that model_name=torchvision.transforms.Augmentation or nn.Identity or something else
     if model_name=='deeplab':
-        model = DeepLabModels.Deeplabv3(num_classes=out_channels)
+        model = DeepLabModels.Deeplabv3(num_classes=out_channels, pretrianed=pretrianed)
     elif model_name == 'fcn':
-        model = FCNModels.FCN(num_classes=out_channels)
+        model = FCNModels.FCN(num_classes=out_channels, pretrianed=pretrianed)
     elif model_name == 'unet':
         model = unet.UNet(in_channels=in_channels,
               out_channels=out_channels,
@@ -435,10 +435,10 @@ class GenSeg_IncludeX_Conventional_brightness(nn.Module):
 ################## Vanilla SOTA models (i.e., no augmentation at all #################
 class GenSeg_Vanilla(nn.Module):
     #image as if it is original images, meanwhile, the val and test average is applied
-    def __init__(self, Gen_Seg_arch=(None,'unet')):
+    def __init__(self, Gen_Seg_arch=(None,'unet'), pretrained=False):
         super().__init__()
         #the Generator here is simply bluring
-        self.model = getModel(Gen_Seg_arch[1])
+        self.model = getModel(Gen_Seg_arch[1], pretrained=pretrained)
 
     def forward(self,X, phase, truth_masks):
         predicted_masks = self.model(X)
