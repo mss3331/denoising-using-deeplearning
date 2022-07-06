@@ -8,7 +8,7 @@ from models import MyModelV1, FCNModels, DeepLabModels, unet
 3- Flexibility at handling the original images and generated images with respect to the final mask
 (i.e., type of voting mechanism for generating masks for train/val/test phases).
  The signature of forward: forward(X, phase)-> (generated_images, mask)'''
-def getModel(model_name='unet', in_channels=3, out_channels=2,pretrianed=False):
+def getModel(model_name='unet',pretrianed=False, in_channels=3, out_channels=2,):
     if not isinstance(model_name,str):
         return model_name #it means that model_name=torchvision.transforms.Augmentation or nn.Identity or something else
     if model_name=='deeplab':

@@ -8,12 +8,13 @@ class FCN(nn.Module):
         super(FCN, self).__init__()
 
         if backbone.find("resnet50") >= 0:
-            self.dl = models.segmentation.fcn_resnet50(pretrained=pretrianed, progress=True, num_classes=num_classes)
+            self.dl = models.segmentation.fcn_resnet50(pretrained=pretrianed, progress=True)
         elif backbone.find("resnet101") >= 0:
-            self.dl = models.segmentation.fcn_resnet101(pretrained=pretrianed, progress=True, num_classes=num_classes)
+            self.dl = models.segmentation.fcn_resnet101(pretrained=pretrianed, progress=True)
         else:
             print("backbone for FCN not recognized ...\n")
             exit(-1)
+        self.dl.classifier[4] = torch.nn.Conv2d(512, num_classes, 1)
 
     def forward(self, x):
         x = self.dl(x)['out']

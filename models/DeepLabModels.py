@@ -14,13 +14,13 @@ class Deeplabv3(nn.Module):
         super(Deeplabv3, self).__init__()
 
         if backbone.find("resnet50")>=0:
-            self.dl = models.segmentation.deeplabv3_resnet50(num_classes=num_classes,pretrained=pretrianed, progress=True)
+            self.dl = models.segmentation.deeplabv3_resnet50(pretrained=pretrianed, progress=True)
         elif backbone.find("resnet101")>=0:
-            self.dl = models.segmentation.deeplabv3_resnet101(num_classes=num_classes,pretrained=pretrianed, progress=True)
+            self.dl = models.segmentation.deeplabv3_resnet101(pretrained=pretrianed, progress=True)
         else:
             print("backbone for Deeplap not recognized ...\n")
             exit(-1)
-        # self.dl.classifier[4] = torch.nn.Conv2d(256, num_classes, 1)
+        self.dl.classifier[4] = torch.nn.Conv2d(256, num_classes, 1)
         # self.dl.classifier = DeepLabHead(2048, num_classes)
         # self.dl.classifier[0].project[3]=nn.Dropout(p=0, inplace=False)
 
