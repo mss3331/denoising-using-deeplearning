@@ -9,7 +9,7 @@ def gradMaskLoss_Eq1(images,mask,loss_fn):
     masked_grad = torch.mul(images_grad,1-mask)
     return loss_fn(masked_grad,torch.zeros(images.shape).to(device))
 
-def color_gradient(images,reduction='mean'):
+def color_gradient(images,reduction='mean',model_name = None):
     device = torch.device('cuda:0')
     a = np.array([[1, 0, -1], [2, 0, -2], [1, 0, -1]])/4
     conv1 = nn.Conv2d(1, 1, kernel_size=3, stride=1, padding=1, bias=False)
@@ -24,8 +24,14 @@ def color_gradient(images,reduction='mean'):
     # -----------------------------------------
     # images.shape = [batch, C, H, W]
     images_shape = images.shape
+
     # images.reshape = [batch*C, 1, H, W]
-    images = images.view(-1, 1, *images_shape[-2:])
+    if model_name == None:
+        images = images.view(-1, 1, *images_shape[-2:])
+    elif model_name.find('hue')>=0 or model_name.find('ColorJitter')>=0 or model_name.find('IncludeAugX')>=0:
+        # error if view is used with hue Aug (use reshape)
+        images = images.reshape(-1, 1, *images_shape[-2:])
+
 
     G_x = conv1(images)
     G_y = conv2(images)
