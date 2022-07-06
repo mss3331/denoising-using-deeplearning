@@ -88,6 +88,9 @@ def getModel(model_name):
             model = GenSeg_IncludeX_ColorJitterGenerator_avgV2(Gen_Seg_arch)
         elif model_name.find('ColorJitterGeneratorTrainOnly_avgV2')>=0:
             model = GenSeg_IncludeX_ColorJitterGeneratorTrainOnly_avgV2(Gen_Seg_arch)
+    elif model_name.find('IncludeAugX')>=0:
+            if model_name.find('avgV2')>=0:
+                model = GenSeg_IncludeAugX_avgV2(Gen_Seg_arch)
     elif model_name.find('Vanilla') >= 0:
         model = GenSeg_Vanilla(Gen_Seg_arch)
 
@@ -144,7 +147,8 @@ if __name__ == '__main__':
     # [unet-proposed, GenSeg_IncludeX_max_unet_unet,GenSeg_IncludeX_max_unet_deeplab,
     # GenSeg_IncludeX_conv, GenSeg_IncludeX_avg, GenSeg_IncludeX_avgV2_unet_unet,
     # GenSeg_IncludeX_convV2_unet_unet, GenSeg_IncludeX_ColorJitterGenerator_avgV2_unet_unet,
-    # GenSeg_IncludeX_ColorJitterGeneratorTrainOnly_avgV2_unet_unet]
+    # GenSeg_IncludeX_ColorJitterGeneratorTrainOnly_avgV2_unet_unet,
+    # GenSeg_IncludeAugX_avgV2_unet_unet]
     #################### Conventional Segmentor models (i.e., online augmentation) with avgV2
     # [GenSeg_IncludeX_Conventional_avgV2_blure_unet, GenSeg_IncludeX_Conventional_avgV2_colorjitter_unet
     # GenSeg_IncludeX_Conventional_avgV2_hue_unet, GenSeg_IncludeX_Conventional_avgV2_brightness_unet]
@@ -153,7 +157,7 @@ if __name__ == '__main__':
     # GenSeg_IncludeX_Conventional_hue_unet, GenSeg_IncludeX_Conventional_brightness_unet]
     ################### Vanilla models (i.e., no generator and no augmentation #######################
     #['GenSeg_Vanilla_none_unet', GenSeg_Vanilla_none_fcn, GenSeg_Vanilla_none_deeplab]
-    model_name = "GenSeg_Vanilla_none_unet"
+    model_name = "GenSeg_IncludeAugX_avgV2_unet_unet"
     model = getModel(model_name)
     if model_name.find('GenSeg')>=0:
         switch_epoch=[-1,-1]

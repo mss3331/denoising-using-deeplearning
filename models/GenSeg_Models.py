@@ -29,21 +29,21 @@ def getModel(model_name='unet', in_channels=3, out_channels=2):
 
     return model
 
-def catOrSplit(tensor_s):
+def catOrSplit(tensor_s, chunks=2):
     if isinstance(tensor_s,list):#if list, means we need to concat
         return torch.cat(tensor_s,dim=0)
     else: # or split
-        return tensor_s.chunk(chunks=2)
+        return tensor_s.chunk(chunks)
 
 class GenSeg_IncludeX(nn.Module):
     '''
     This is the base class for GenSeg_IncludeX class. Now we will create subclasses
     '''
 
-    def __init__(self, Gen_Seg_arch=('unet','unet')):
+    def __init__(self, Gen_Seg_arch=('unet','unet'), augmentation=None):
         super().__init__()
         base = getModel(Gen_Seg_arch[0],out_channels=3)
-
+        self.augmentation = augmentation
         if isinstance(Gen_Seg_arch[0], str):  # it means Gen_Seg_arch[0]='unet' or 'deeplab' ... etc
             self.Generator = nn.Sequential(base, nn.Sigmoid())
         else:  # it means Gen_Seg_arch[0]=torchvision.transforms.GaussianBlur (i.e., Conventional Aug)
@@ -53,7 +53,11 @@ class GenSeg_IncludeX(nn.Module):
     def forward(self,X):
         generated_images = self.Generator(X)
         generated_images_clone = generated_images.clone().detach()
-        X_and_generated_images = catOrSplit([X, generated_images_clone])
+        if self.augmentation:
+            augmented_images = self.augmentation(X)
+            X_and_generated_images = catOrSplit([X, generated_images_clone, augmented_images])
+        else:
+            X_and_generated_images = catOrSplit([X, generated_images_clone])
         masks = self.Segmentor(X_and_generated_images)
         return generated_images, masks
 
@@ -210,6 +214,27 @@ class GenSeg_IncludeX_NoCombining(nn.Module):
             predicted_masks = predicted_masks_X
         else:  # if it is train, double the number of labels to be (2*N,2,H,W)
             truth_masks = catOrSplit([truth_masks, truth_masks])
+
+        return generated_images, predicted_masks, truth_masks
+class GenSeg_IncludeAugX_avgV2(nn.Module):
+    #It is similar to GenSeg_IncludeX_max class, in which the segmentor trained on generated
+    #image as if it is original images, meanwhile, the val and test average is applied
+    def __init__(self, Gen_Seg_arch=('unet','unet')):
+        super().__init__()
+        aug= torchvision.transforms.ColorJitter(hue=0.05)
+        self.baseGenSeg_model = GenSeg_IncludeX(Gen_Seg_arch, augmentation=aug)
+
+    def forward(self,X, phase, truth_masks):
+        generated_images, predicted_masks = self.baseGenSeg_model(X)
+        #predicted_masks = (2*N,2,H,W) i.e., original images masks and generated images masks
+
+        if phase != 'train':
+            predicted_masks_X, predicted_masks_gen, predicted_masks_aug = catOrSplit(predicted_masks, chunks=3)
+            # the results would be (N,C,[orig gen],H,W)
+            generated_X_masks_stacked = torch.stack((predicted_masks_gen, predicted_masks_X), dim=2)
+            predicted_masks= generated_X_masks_stacked.mean(dim=2)
+        else:  # if it is train, triple the number of labels to be (3*N,C,H,W) => (Original,Gen,Aug)
+            truth_masks = catOrSplit([truth_masks, truth_masks, truth_masks])
 
         return generated_images, predicted_masks, truth_masks
 # this is the default model. Including the original images with the corresponding mask is done in the
