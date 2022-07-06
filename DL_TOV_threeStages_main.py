@@ -89,8 +89,10 @@ def getModel(model_name):
         elif model_name.find('ColorJitterGeneratorTrainOnly_avgV2')>=0:
             model = GenSeg_IncludeX_ColorJitterGeneratorTrainOnly_avgV2(Gen_Seg_arch)
     elif model_name.find('IncludeAugX')>=0:
-            if model_name.find('avgV2')>=0:
-                model = GenSeg_IncludeAugX_avgV2(Gen_Seg_arch)
+            if model_name.find('hue_avgV2')>=0:
+                model = GenSeg_IncludeAugX_hue_avgV2(Gen_Seg_arch)
+            elif model_name.find('gray_avgV2')>=0:
+                model = GenSeg_IncludeAugX_gray_avgV2(Gen_Seg_arch)
     elif model_name.find('Vanilla') >= 0:
         pretrained = model_name.find('TL')>=0
         model = GenSeg_Vanilla(Gen_Seg_arch,pretrained)
@@ -149,7 +151,7 @@ if __name__ == '__main__':
     # GenSeg_IncludeX_conv, GenSeg_IncludeX_avg, GenSeg_IncludeX_avgV2_unet_unet,
     # GenSeg_IncludeX_convV2_unet_unet, GenSeg_IncludeX_ColorJitterGenerator_avgV2_unet_unet,
     # GenSeg_IncludeX_ColorJitterGeneratorTrainOnly_avgV2_unet_unet,
-    # GenSeg_IncludeAugX_avgV2_unet_unet]
+    # GenSeg_IncludeAugX_hue_avgV2_unet_unet, GenSeg_IncludeAugX_gray_avgV2_unet_unet]
     #################### Conventional Segmentor models (i.e., online augmentation) with avgV2
     # [GenSeg_IncludeX_Conventional_avgV2_blure_unet, GenSeg_IncludeX_Conventional_avgV2_colorjitter_unet
     # GenSeg_IncludeX_Conventional_avgV2_hue_unet, GenSeg_IncludeX_Conventional_avgV2_brightness_unet]
@@ -160,7 +162,7 @@ if __name__ == '__main__':
     #                 Transfere Learning for vanilla models are added except for Unet
     #['GenSeg_Vanilla_none_unet', GenSeg_Vanilla_none_fcn, GenSeg_Vanilla_none_deeplab]
     #[GenSeg_Vanilla_TL_fcn, GenSeg_Vanilla_TL_deeplab]
-    model_name = "GenSeg_Vanilla_TL_deeplab"
+    model_name = "GenSeg_IncludeAugX_gray_avgV2_unet_unet"
     model = getModel(model_name)
     if model_name.find('GenSeg')>=0:
         switch_epoch=[-1,-1]

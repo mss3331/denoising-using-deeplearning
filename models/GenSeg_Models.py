@@ -216,12 +216,33 @@ class GenSeg_IncludeX_NoCombining(nn.Module):
             truth_masks = catOrSplit([truth_masks, truth_masks])
 
         return generated_images, predicted_masks, truth_masks
-class GenSeg_IncludeAugX_avgV2(nn.Module):
+class GenSeg_IncludeAugX_hue_avgV2(nn.Module):
     #It is similar to GenSeg_IncludeX_max class, in which the segmentor trained on generated
     #image as if it is original images, meanwhile, the val and test average is applied
     def __init__(self, Gen_Seg_arch=('unet','unet')):
         super().__init__()
         aug= torchvision.transforms.ColorJitter(hue=0.05)
+        self.baseGenSeg_model = GenSeg_IncludeX(Gen_Seg_arch, augmentation=aug)
+
+    def forward(self,X, phase, truth_masks):
+        generated_images, predicted_masks = self.baseGenSeg_model(X)
+        #predicted_masks = (2*N,2,H,W) i.e., original images masks and generated images masks
+
+        if phase != 'train':
+            predicted_masks_X, predicted_masks_gen, predicted_masks_aug = catOrSplit(predicted_masks, chunks=3)
+            # the results would be (N,C,[orig gen],H,W)
+            generated_X_masks_stacked = torch.stack((predicted_masks_gen, predicted_masks_X), dim=2)
+            predicted_masks= generated_X_masks_stacked.mean(dim=2)
+        else:  # if it is train, triple the number of labels to be (3*N,C,H,W) => (Original,Gen,Aug)
+            truth_masks = catOrSplit([truth_masks, truth_masks, truth_masks])
+
+        return generated_images, predicted_masks, truth_masks
+class GenSeg_IncludeAugX_gray_avgV2(nn.Module):
+    #It is similar to GenSeg_IncludeX_max class, in which the segmentor trained on generated
+    #image as if it is original images, meanwhile, the val and test average is applied
+    def __init__(self, Gen_Seg_arch=('unet','unet')):
+        super().__init__()
+        aug= torchvision.transforms.Grayscale(num_output_channels=3)
         self.baseGenSeg_model = GenSeg_IncludeX(Gen_Seg_arch, augmentation=aug)
 
     def forward(self,X, phase, truth_masks):
