@@ -438,7 +438,7 @@ class GenSeg_Vanilla(nn.Module):
     def __init__(self, Gen_Seg_arch=(None,'unet'), pretrained=False):
         super().__init__()
         #the Generator here is simply bluring
-        self.model = getModel(Gen_Seg_arch[1], pretrained=pretrained)
+        self.model = getModel(Gen_Seg_arch[1], pretrained)
 
     def forward(self,X, phase, truth_masks):
         predicted_masks = self.model(X)
