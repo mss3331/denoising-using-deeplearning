@@ -130,7 +130,7 @@ if __name__ == '__main__':
 
     resize_factor = 0.75
     target_img_size = (int(288*resize_factor), int(384*resize_factor))
-    train_val_ratio = 0.5
+    train_val_ratio = 0.8
 
     print("resize_factor={} and image size={}".format(resize_factor, target_img_size))
     # ************** modify for full experiment *************
