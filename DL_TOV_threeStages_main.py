@@ -187,7 +187,7 @@ if __name__ == '__main__':
     #dataset_name = [Kvasir_Seg*5, CVC_ClinicDB*1 ,ETIS_Larib*1, EndoCV*5] 5= data_C1, data_C2 ... data_C5
     #               CVC_EndoSceneStill
     Dataloaders_dic= {}
-    # CVC train, Kvasir Train
+    # CVC train, Kvasir Test
     # train_val_ratio = 0.8
     # dataloasers = getLoadersBySetName('CVC_ClinicDB', 'data_C1',target_img_size, train_val_ratio)
     # Dataloaders_dic['train'], Dataloaders_dic['val'] = dataloasers
