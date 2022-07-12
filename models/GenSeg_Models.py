@@ -153,7 +153,7 @@ class GenSeg_IncludeX_ColorJitterGenerator_avgV2(nn.Module):
     # We increase the challenge for the Generator to reconstructed a corrupted images (i.e., augmented).
     def __init__(self, Gen_Seg_arch=('unet','unet')):
         super().__init__()
-        Gen_Seg_arch[0] = nn.Sequential( torchvision.transforms.ColorJitter(brightness=.5, hue=.3),
+        Gen_Seg_arch[0] = nn.Sequential( torchvision.transforms.ColorJitter(brightness=.2, hue=.05),
                                          getModel(Gen_Seg_arch[0],out_channels=3) )
         self.baseGenSeg_model = GenSeg_IncludeX(Gen_Seg_arch)
 
@@ -174,7 +174,7 @@ class GenSeg_IncludeX_ColorJitterGeneratorTrainOnly_avgV2(nn.Module):
     # We increase the challenge for the Generator to reconstructed a corrupted images (i.e., augmented).
     def __init__(self, Gen_Seg_arch=('unet','unet')):
         super().__init__()
-        Gen_Seg_arch[0] = nn.Sequential( torchvision.transforms.ColorJitter(brightness=.5, hue=.3),
+        Gen_Seg_arch[0] = nn.Sequential( torchvision.transforms.ColorJitter(brightness=.2, hue=.3),
                                          getModel(Gen_Seg_arch[0],out_channels=3) )
         self.baseGenSeg_model = GenSeg_IncludeX(Gen_Seg_arch)#this one for train
         # this one doesn't augment the images before fedding it to Generator. Both cases use the Same Generator
@@ -309,7 +309,7 @@ class GenSeg_IncludeX_Conventional_avgV2_colorjitter(nn.Module):
     def __init__(self, Gen_Seg_arch=('unet','unet')):
         super().__init__()
         #the Generator here is simply bluring
-        Gen_Seg_arch[0] = torchvision.transforms.ColorJitter(brightness=.5, hue=.3)
+        Gen_Seg_arch[0] = torchvision.transforms.ColorJitter(brightness=.2, hue=0.05)
         self.baseGenSeg_model = GenSeg_IncludeX(Gen_Seg_arch)
 
     def forward(self,X, phase, truth_masks):
@@ -331,7 +331,7 @@ class GenSeg_IncludeX_Conventional_avgV2_hue(nn.Module):
     def __init__(self, Gen_Seg_arch=('unet','unet')):
         super().__init__()
         #the Generator here is simply bluring
-        Gen_Seg_arch[0] = torchvision.transforms.ColorJitter(hue=.3)
+        Gen_Seg_arch[0] = torchvision.transforms.ColorJitter(hue=.05)
         self.baseGenSeg_model = GenSeg_IncludeX(Gen_Seg_arch)
 
     def forward(self,X, phase, truth_masks):
@@ -353,7 +353,7 @@ class GenSeg_IncludeX_Conventional_avgV2_brightness(nn.Module):
     def __init__(self, Gen_Seg_arch=('unet','unet')):
         super().__init__()
         #the Generator here is simply bluring
-        Gen_Seg_arch[0] = torchvision.transforms.ColorJitter(brightness=.5)
+        Gen_Seg_arch[0] = torchvision.transforms.ColorJitter(brightness=.2)
         self.baseGenSeg_model = GenSeg_IncludeX(Gen_Seg_arch)
 
     def forward(self,X, phase, truth_masks):
@@ -417,7 +417,7 @@ class GenSeg_IncludeX_Conventional_hue(nn.Module):
     def __init__(self, Gen_Seg_arch=('unet','unet')):
         super().__init__()
         #the Generator here is simply bluring
-        Gen_Seg_arch[0] = torchvision.transforms.ColorJitter(hue=[0, .1])
+        Gen_Seg_arch[0] = torchvision.transforms.ColorJitter(hue=0.05)
         self.baseGenSeg_model = GenSeg_IncludeX(Gen_Seg_arch)
 
     def forward(self,X, phase, truth_masks):
