@@ -14,7 +14,8 @@ def getLoadersBySetName(dataset_name, data_C,target_img_size, train_val_ratio=0,
     databases = {'EndoCV': "/content/trainData_EndoCV2021_5_Feb2021",
                  'CVC_ClinicDB': '/content/CVC-ClinicDB',
                  'Kvasir_Seg': '/content/Kvasir-SEG',
-                 'ETIS_Larib':'/content/ETIS-LaribPolypDB'}
+                 'ETIS_Larib':'/content/ETIS-LaribPolypDB',
+                  'CVC_EndoSceneStill':'/content/CVC-EndoSceneStill'}
     #if the dataset_info is list of tuple, then it will be combined before splitting by the function
     #getDataloadersDic(). Good!!
     if not isinstance(data_C, list):#
@@ -34,7 +35,7 @@ def getLoadersBySetName(dataset_name, data_C,target_img_size, train_val_ratio=0,
     dataloader1 = Dataloaders_dic['train']
     dataloader2 = Dataloaders_dic['val']
     if train_val_ratio==0:
-        dataloader1 = None
+        return dataloader2
 
     return dataloader1, dataloader2
 
