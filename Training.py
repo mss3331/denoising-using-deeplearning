@@ -549,6 +549,7 @@ def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loa
             loss_grad_batches = []
             loss_mask_batches = []
             iou_batches = []
+            metrics = []
             original_images_grad = []
             generated_images_grad = []
 
@@ -598,6 +599,9 @@ def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loa
                             loss_mask = bce(generated_masks, original_masks)
                             loss = loss_grad * lamda['grad'] + loss_l2 * lamda['l2'] + loss_mask
                             iou = IOU_class01(original_masks, generated_masks)
+                            original_masks_numpy = original_masks.clone().detach().cpu().max(dim=1).numpy().reshape(batch_size,-1)
+                            generated_masks_numpy = generated_masks.clone().detach().cpu().max(dim=1).numpy().reshape(batch_size,-1)
+                            metrics += [calculate_metrics(original_masks_numpy[i],generated_masks_numpy[i]) for i in batch_size]
 
                     loss_batches.append(loss.clone().detach().cpu().numpy())
                     loss_l2_batches.append(loss_l2.clone().detach().cpu().numpy())
@@ -667,6 +671,8 @@ def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loa
                        "best_val_loss": best_loss['val'],
                        'best_val_iou': best_iou['val'], phase + "_epoch": epoch},
                       step=epoch)
+            mean_metrics = np.mean(np.numpy(metrics),0)
+            metrics_dic = dict(zip(mean_metrics,["accuracy", "jaccard", "dice", "f1", "recall", "precision"]))
             wandb.run.summary["dict_{}".format(phase)] = {'a': 1, 'b': 0.5, 'c': 0.002}
 
 

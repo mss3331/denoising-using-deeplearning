@@ -46,8 +46,6 @@ def dice_score(y_true, y_pred):
     return np.sum(y_pred[y_true == 1] == 1) * 2.0 / (np.sum(y_pred[y_pred == 1] == 1) + np.sum(y_true[y_true == 1] == 1))
 
 def calculate_metrics(y_true, y_pred):
-    if torch.is_tensor(y_true):
-        pass
     score_accuracy = accuracy_score(y_true, y_pred)
     score_jaccard = jaccard_score(y_true, y_pred, average="binary")
     score_f1 = f1_score(y_true, y_pred, average="binary")
