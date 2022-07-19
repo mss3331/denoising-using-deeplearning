@@ -1,7 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as pl
+import sklearn.metrics as skl
 from torch import sigmoid
 import torch
+
 
 def  iou_my(outputs,labels):
     outputs = outputs.detach().clone().cpu()

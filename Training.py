@@ -5,7 +5,7 @@ from tqdm import tqdm
 from torch import nn
 from pprint import pprint
 from torchvision import transforms
-from MedAI_code_segmentation_evaluation import IOU_class01
+from MedAI_code_segmentation_evaluation import IOU_class01, calculate_metrics
 from My_losses import *
 #TODO: delete the unecessarly model.train after the phase loop
 # TODO: Implement saving a checkpoint
@@ -667,6 +667,8 @@ def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loa
                        "best_val_loss": best_loss['val'],
                        'best_val_iou': best_iou['val'], phase + "_epoch": epoch},
                       step=epoch)
+            wandb.run.summary["dict_{}".format(phase)] = {'a': 1, 'b': 0.5, 'c': 0.002}
+
 
 
 def literature_training_loop(num_epochs, optimizer, lamda, model, BCE, data_loader_dic, device,colab_dir, model_name):

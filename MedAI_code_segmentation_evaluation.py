@@ -13,6 +13,7 @@ from sklearn.metrics import f1_score
 from sklearn.metrics import recall_score
 from sklearn.metrics import precision_score
 from sklearn.metrics import accuracy_score
+import torch
 
 random.seed(0)
 np.random.seed(0)
@@ -45,6 +46,8 @@ def dice_score(y_true, y_pred):
     return np.sum(y_pred[y_true == 1] == 1) * 2.0 / (np.sum(y_pred[y_pred == 1] == 1) + np.sum(y_true[y_true == 1] == 1))
 
 def calculate_metrics(y_true, y_pred):
+    if torch.is_tensor(y_true):
+        pass
     score_accuracy = accuracy_score(y_true, y_pred)
     score_jaccard = jaccard_score(y_true, y_pred, average="binary")
     score_f1 = f1_score(y_true, y_pred, average="binary")
@@ -52,6 +55,7 @@ def calculate_metrics(y_true, y_pred):
     score_precision = precision_score(y_true, y_pred, average="binary", zero_division=0)
     score_dice = dice_score(y_true, y_pred)
     return [score_accuracy, score_jaccard, score_dice, score_f1, score_recall, score_precision]
+
 
 def get_filename(filepath):
     return os.path.splitext(os.path.basename(filepath))[0]
