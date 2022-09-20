@@ -107,7 +107,7 @@ def getModel(model_name):
 if __name__ == '__main__':
     '''This main is created to do side experiments'''
     repreducibility()
-
+    inference = True #if true, we need to load weights, set epoch to 0 and delete the training set
     experiment_name=get('http://172.28.0.2:9000/api/sessions').json()[0]['name'].split('.')[0]
     learning_rate = 0.01
     input_channels = 3
@@ -221,6 +221,12 @@ if __name__ == '__main__':
 
     # call the training loop,
     # make sure to pass correct checkpoint path, or none if starting with the training
+    if inference:
+        num_epochs=0
+        lamda = {"l2":1,"grad":1}
+        checkpoint = torch.load('./denoising-using-deeplearning/checkpoints/highest_IOU_{}.pt'.format(model_name))
+        Dataloaders_dic.pop('train')
+
     start = time.time()
 
     Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_fn,

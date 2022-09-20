@@ -561,18 +561,18 @@ def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loa
                 X = X.to(device).float()
                 intermediate = intermediate.to(device).float()  # intermediate is the mask with type of float
                 original_masks = original_masks.to(device)#this is 2 channels mask
-                if model_name.find('GenSeg')>=0:
-                    results = model(X,phase,original_masks)
-                    generated_images, generated_masks, original_masks = results
-                else:#the old version code i.e., other than GenSeg_IncludeX models
-                    generated_images = model[0](X)
-                    generated_X = generated_images.clone().detach()
-                    if epoch >= switch_epoch[1]:
-                        generated_masks = model[1](generated_X)
 
                 optimizer.zero_grad()
-
                 with torch.set_grad_enabled(phase == 'train'):
+                    if model_name.find('GenSeg') >= 0:
+                        results = model(X, phase, original_masks)
+                        generated_images, generated_masks, original_masks = results
+                    else:  # the old version code i.e., other than GenSeg_IncludeX models
+                        generated_images = model[0](X)
+                        generated_X = generated_images.clone().detach()
+                        if epoch >= switch_epoch[1]:
+                            generated_masks = model[1](generated_X)
+
                     loss_mask = torch.zeros((1)).int()
                     iou=0
                     #update loss threshold for stage 2 and 3
@@ -664,6 +664,10 @@ def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loa
                                       best_loss['val'], best_loss['test1'],
                                       best_iou['val'], best_iou['test1'],
                                       colab_dir, model_name)
+                if best_iou_epoch == epoch:#calculate metrics for val and test if it is the best epoch
+                    mean_metrics = np.mean(metrics, 0)
+                    metrics_dic = dict(zip(["accuracy", "jaccard", "dice", "f1", "recall", "precision"], mean_metrics))
+                    wandb.run.summary["dict_{}".format(phase)] = metrics_dic
 
             wandb.log({phase + "_loss": np.mean(loss_batches),
                        phase + "_L2": np.mean(loss_l2_batches), phase + "_grad": np.mean(loss_grad_batches),
@@ -672,9 +676,7 @@ def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loa
                        "best_val_loss": best_loss['val'],
                        'best_val_iou': best_iou['val'], phase + "_epoch": epoch},
                       step=epoch)
-            mean_metrics = np.mean(metrics, 0)
-            metrics_dic = dict(zip(["accuracy", "jaccard", "dice", "f1", "recall", "precision"], mean_metrics))
-            wandb.run.summary["dict_{}".format(phase)] = metrics_dic
+
 
 
 
