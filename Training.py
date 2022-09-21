@@ -633,13 +633,17 @@ def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loa
                                   'L2': np.mean(loss_l2_batches),
                                   'grad': np.mean(loss_grad_batches),
                                   'BCE_loss': np.mean(loss_mask_batches),
-                                  'iou': np.mean(iou_batches),
+                                  'polypIOU': np.mean(metrics, 0)[1],
+                                  'mIOU': np.mean(iou_batches),
                                   'original_images_grad': np.mean(original_images_grad),
-                                  'best_val_loss': best_loss['val'],
                                   'best_val_iou': best_iou['val'],
-                                  'best_test_loss': best_loss['test1'],
                                   'best_test_iou': best_iou['test1'],
                                   })
+
+            # !!!! important here we average the metrics across all images
+            mean_metrics = np.mean(metrics, 0)
+            # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
             if phase != 'train':
                 if np.mean(loss_batches) < best_loss[phase]:
                     print('best {} loss={} so far ...'.format(phase,np.mean(loss_batches)))
@@ -649,10 +653,11 @@ def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loa
                     if phase=='val':
                         print('better validation loss')
                 if phase=='val' :
-                    if np.mean(iou_batches) > best_iou[phase]:
+                    #if Polyp mean is getting better
+                    if mean_metrics[1] > best_iou[phase]:
                         wandb.run.summary["best_{}_iou".format(phase)] = np.mean(iou_batches)
                         wandb.run.summary["best_{}_iou_epoch".format(phase)] = epoch
-                        best_iou[phase] = np.mean(iou_batches)
+                        best_iou[phase] = mean_metrics[1] #Jaccard/IOU of polyp
                         best_loss[phase] = np.mean(loss_batches)
                         best_iou_epoch = epoch
                         print('best val_iou')
@@ -668,7 +673,6 @@ def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loa
                                       colab_dir, model_name)
                 # calculate summary results and store them in results
                 if best_iou_epoch == epoch:#calculate metrics for val and test if it is the best epoch
-                    mean_metrics = np.mean(metrics, 0)
                     metrics_dic = dict(zip(["accuracy", "jaccard", "dice", "f1", "recall", "precision"], mean_metrics))
                     print(phase,':',metrics_dic)
                     wandb.run.summary["dict_{}".format(phase)] = metrics_dic
