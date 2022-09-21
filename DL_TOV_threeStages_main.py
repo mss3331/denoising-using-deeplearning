@@ -168,7 +168,7 @@ if __name__ == '__main__':
     #                 Transfere Learning for vanilla models are added except for Unet
     #['GenSeg_Vanilla_none_unet', GenSeg_Vanilla_none_fcn, GenSeg_Vanilla_none_deeplab]
     #[GenSeg_Vanilla_TL_fcn, GenSeg_Vanilla_TL_deeplab]
-    model_name = "GenSeg_IncludeAugX_gray_avgV2_unet_unet"
+    model_name = "GenSeg_IncludeAugX_hue_avgV2_unet_unet"
     model = getModel(model_name)
     if model_name.find('GenSeg')>=0:
         switch_epoch=[-1,-1]
