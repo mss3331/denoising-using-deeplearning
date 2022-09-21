@@ -672,8 +672,8 @@ def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loa
                     metrics_dic = dict(zip(["accuracy", "jaccard", "dice", "f1", "recall", "precision"], mean_metrics))
                     print(phase,':',metrics_dic)
                     wandb.run.summary["dict_{}".format(phase)] = metrics_dic
-                    pandas.DataFrame(metrics_dic).transpose().to_excel(
-                        colab_dir + "/results/{}_summary_report.xlsx".format(phase))
+                    pandas.DataFrame.from_dict(metrics_dic, orient='index',
+                                               columns=[phase]).transpose().to_excel(colab_dir + "/results/{}_summary_report.xlsx".format(phase))
 
             wandb.log({phase + "_loss": np.mean(loss_batches),
                        phase + "_L2": np.mean(loss_l2_batches), phase + "_grad": np.mean(loss_grad_batches),

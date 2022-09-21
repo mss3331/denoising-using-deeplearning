@@ -13,6 +13,7 @@ from sklearn.metrics import f1_score
 from sklearn.metrics import recall_score
 from sklearn.metrics import precision_score
 from sklearn.metrics import accuracy_score
+from sklearn.metrics import confusion_matrix
 import torch
 
 random.seed(0)
@@ -52,6 +53,8 @@ def calculate_metrics(y_true, y_pred):
     score_recall = recall_score(y_true, y_pred, average="binary")
     score_precision = precision_score(y_true, y_pred, average="binary", zero_division=0)
     score_dice = dice_score(y_true, y_pred)
+    # tn, fp, fn, tp = confusion_matrix(y_true, y_pred).ravel()
+    # score_specificity = tn / (tn + fp)
     return [score_accuracy, score_jaccard, score_dice, score_f1, score_recall, score_precision]
 
 
