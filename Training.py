@@ -644,7 +644,7 @@ def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loa
                                   })
 
             # !!!! important here we average the metrics across all images
-            mean_metrics_polyp = np.mean(metrics, 0)
+            mean_metrics_polyp = np.mean(metrics_polyp, 0)
             # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
             if phase != 'train':
@@ -681,10 +681,13 @@ def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loa
                                            mean_metrics_polyp))
                     metrics_dic_background = dict(zip(["accuracy", "jaccard", "dice", "recall", "precision"],
                                                  mean_metrics_background))
+                    mean_mMetrics = (mean_metrics_background+mean_metrics_background)/2
+                    metrics_mMetrics_dic = dict(zip(["accuracy", "jaccard", "dice", "recall", "precision"],
+                                                      mean_mMetrics))
                     print(phase,':',metrics_dic_polyp)
                     wandb.run.summary["dict_{}".format(phase)] = metrics_dic_polyp
-                    pandas.DataFrame.from_dict([metrics_dic_polyp, metrics_dic_background], orient='index',
-                                               columns=['Polyp', 'Background']).transpose().to_excel(colab_dir + "/results/{}_summary_report.xlsx".format(phase))
+                    pandas.DataFrame.from_dict({'Polyp':metrics_dic_polyp,'Background': metrics_dic_background,
+                                                'Mean':metrics_mMetrics_dic}).transpose().to_excel(colab_dir + "/results/{}_summary_report.xlsx".format(phase))
 
             wandb.log({phase + "_loss": np.mean(loss_batches),
                        phase + "_L2": np.mean(loss_l2_batches), phase + "_grad": np.mean(loss_grad_batches),
