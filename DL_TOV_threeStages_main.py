@@ -47,6 +47,12 @@ def repreducibility():
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
 
+def getStateDict(checkpoint):
+    for key,value in checkpoint.items():
+        if key.find('state')>=0:#Skip state_dict, thought print other keys
+            continue
+        print(key,":",value)
+    return checkpoint['state_dict']
 
 def getModel(model_name):
     # identify which models for Gen Seg
@@ -225,6 +231,8 @@ if __name__ == '__main__':
         num_epochs=0
         lamda = {"l2":1,"grad":1}
         checkpoint = torch.load('./denoising-using-deeplearning/checkpoints/highest_IOU_{}.pt'.format(model_name))
+        state_dict = getStateDict(checkpoint)
+        model.load_state_dict(state_dict)
         Dataloaders_dic.pop('train')
 
     start = time.time()
