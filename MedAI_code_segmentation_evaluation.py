@@ -49,13 +49,13 @@ def dice_score(y_true, y_pred):
 def calculate_metrics(y_true, y_pred):
     score_accuracy = accuracy_score(y_true, y_pred)
     score_jaccard = jaccard_score(y_true, y_pred, average="binary")
-    score_f1 = f1_score(y_true, y_pred, average="binary")
+    #score_f1 = f1_score(y_true, y_pred, average="binary") #It is equal to Dice!!
     score_recall = recall_score(y_true, y_pred, average="binary")
     score_precision = precision_score(y_true, y_pred, average="binary", zero_division=0)
     score_dice = dice_score(y_true, y_pred)
     # tn, fp, fn, tp = confusion_matrix(y_true, y_pred).ravel()
     # score_specificity = tn / (tn + fp)
-    return [score_accuracy, score_jaccard, score_dice, score_f1, score_recall, score_precision]
+    return [score_accuracy, score_jaccard, score_dice, score_recall, score_precision]
 
 
 def get_filename(filepath):

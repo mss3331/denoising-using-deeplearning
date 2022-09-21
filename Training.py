@@ -550,7 +550,8 @@ def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loa
             loss_grad_batches = []
             loss_mask_batches = []
             iou_batches = []
-            metrics = []
+            metrics_polyp = []
+            metrics_background = []
             original_images_grad = []
             generated_images_grad = []
 
@@ -603,8 +604,10 @@ def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loa
                             iou = IOU_class01(original_masks, generated_masks)
                             original_masks_numpy = original_masks.clone().detach().cpu().argmax(dim=1).numpy().reshape(batch_size, -1)
                             generated_masks_numpy = generated_masks.clone().detach().cpu().argmax(dim=1).numpy().reshape(batch_size, -1)
-                            metrics += [calculate_metrics(original_masks_numpy[i], generated_masks_numpy[i]) for i in
+                            metrics_polyp += [calculate_metrics(original_masks_numpy[i], generated_masks_numpy[i]) for i in
                                         range(batch_size)]
+                            metrics_background += [calculate_metrics(1-original_masks_numpy[i], 1-generated_masks_numpy[i]) for i
+                                              in range(batch_size)]
 
                     loss_batches.append(loss.clone().detach().cpu().numpy())
                     loss_l2_batches.append(loss_l2.clone().detach().cpu().numpy())
@@ -633,7 +636,7 @@ def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loa
                                   'L2': np.mean(loss_l2_batches),
                                   'grad': np.mean(loss_grad_batches),
                                   'BCE_loss': np.mean(loss_mask_batches),
-                                  'polypIOU': np.mean(metrics, 0)[1],
+                                  'polypIOU': np.mean(metrics_polyp, 0)[1],
                                   'mIOU': np.mean(iou_batches),
                                   'original_images_grad': np.mean(original_images_grad),
                                   'best_val_iou': best_iou['val'],
@@ -641,7 +644,7 @@ def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loa
                                   })
 
             # !!!! important here we average the metrics across all images
-            mean_metrics = np.mean(metrics, 0)
+            mean_metrics_polyp = np.mean(metrics, 0)
             # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
             if phase != 'train':
@@ -654,10 +657,10 @@ def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loa
                         print('better validation loss')
                 if phase=='val' :
                     #if Polyp mean is getting better
-                    if mean_metrics[1] > best_iou[phase]:
+                    if mean_metrics_polyp[1] > best_iou[phase]:
                         wandb.run.summary["best_{}_iou".format(phase)] = np.mean(iou_batches)
                         wandb.run.summary["best_{}_iou_epoch".format(phase)] = epoch
-                        best_iou[phase] = mean_metrics[1] #Jaccard/IOU of polyp
+                        best_iou[phase] = mean_metrics_polyp[1] #Jaccard/IOU of polyp
                         best_loss[phase] = np.mean(loss_batches)
                         best_iou_epoch = epoch
                         print('best val_iou')
@@ -673,11 +676,15 @@ def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loa
                                       colab_dir, model_name)
                 # calculate summary results and store them in results
                 if best_iou_epoch == epoch:#calculate metrics for val and test if it is the best epoch
-                    metrics_dic = dict(zip(["accuracy", "jaccard", "dice", "f1", "recall", "precision"], mean_metrics))
-                    print(phase,':',metrics_dic)
-                    wandb.run.summary["dict_{}".format(phase)] = metrics_dic
-                    pandas.DataFrame.from_dict(metrics_dic, orient='index',
-                                               columns=[phase]).transpose().to_excel(colab_dir + "/results/{}_summary_report.xlsx".format(phase))
+                    mean_metrics_background = np.mean(metrics_background, 0)
+                    metrics_dic_polyp = dict(zip(["accuracy", "jaccard", "dice", "recall", "precision"],
+                                           mean_metrics_polyp))
+                    metrics_dic_background = dict(zip(["accuracy", "jaccard", "dice", "recall", "precision"],
+                                                 mean_metrics_background))
+                    print(phase,':',metrics_dic_polyp)
+                    wandb.run.summary["dict_{}".format(phase)] = metrics_dic_polyp
+                    pandas.DataFrame.from_dict([metrics_dic_polyp, metrics_dic_background], orient='index',
+                                               columns=['Polyp', 'Background']).transpose().to_excel(colab_dir + "/results/{}_summary_report.xlsx".format(phase))
 
             wandb.log({phase + "_loss": np.mean(loss_batches),
                        phase + "_L2": np.mean(loss_l2_batches), phase + "_grad": np.mean(loss_grad_batches),
