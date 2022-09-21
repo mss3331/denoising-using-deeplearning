@@ -4,6 +4,7 @@ import numpy as np
 from tqdm import tqdm
 from torch import nn
 from pprint import pprint
+import pandas
 from torchvision import transforms
 from MedAI_code_segmentation_evaluation import IOU_class01, calculate_metrics
 from My_losses import *
@@ -564,6 +565,7 @@ def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loa
 
                 optimizer.zero_grad()
                 with torch.set_grad_enabled(phase == 'train'):
+                #Generate polyp images and masks
                     if model_name.find('GenSeg') >= 0:
                         results = model(X, phase, original_masks)
                         generated_images, generated_masks, original_masks = results
@@ -664,10 +666,14 @@ def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loa
                                       best_loss['val'], best_loss['test1'],
                                       best_iou['val'], best_iou['test1'],
                                       colab_dir, model_name)
+                # calculate summary results and store them in results
                 if best_iou_epoch == epoch:#calculate metrics for val and test if it is the best epoch
                     mean_metrics = np.mean(metrics, 0)
                     metrics_dic = dict(zip(["accuracy", "jaccard", "dice", "f1", "recall", "precision"], mean_metrics))
+                    print(phase,':',metrics_dic)
                     wandb.run.summary["dict_{}".format(phase)] = metrics_dic
+                    pandas.DataFrame(metrics_dic).transpose().to_excel(
+                        colab_dir + "/results/{}_summary_report.xlsx".format(phase))
 
             wandb.log({phase + "_loss": np.mean(loss_batches),
                        phase + "_L2": np.mean(loss_l2_batches), phase + "_grad": np.mean(loss_grad_batches),
