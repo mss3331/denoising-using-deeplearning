@@ -601,9 +601,12 @@ def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loa
                             bce = loss_dic['segmentor']
                             loss_mask = bce(generated_masks, original_masks)
                             loss = loss_grad * lamda['grad'] + loss_l2 * lamda['l2'] + loss_mask
+                            # todo: calculating IOU per image added extra 10 seconds per epoch. For 300 epoch=50minutes extra
                             iou = IOU_class01(original_masks, generated_masks)
+                            # todo: These 2 lines added 60 seconds due to making the CPU doing the workload
                             original_masks_numpy = original_masks.clone().detach().cpu().argmax(dim=1).numpy().reshape(batch_size, -1)
                             generated_masks_numpy = generated_masks.clone().detach().cpu().argmax(dim=1).numpy().reshape(batch_size, -1)
+                            # todo: calculating metrics per image is very slow (added extra 3 minutes)
                             metrics_polyp += [calculate_metrics(original_masks_numpy[i], generated_masks_numpy[i]) for i in
                                         range(batch_size)]
                             metrics_background += [calculate_metrics(1-original_masks_numpy[i], 1-generated_masks_numpy[i]) for i

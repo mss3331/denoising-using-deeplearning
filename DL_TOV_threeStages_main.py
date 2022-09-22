@@ -113,8 +113,10 @@ def getModel(model_name):
 if __name__ == '__main__':
     '''This main is created to do side experiments'''
     repreducibility()
-    inference = True #if true, we need to load weights, set epoch to 0 and delete the training set
     experiment_name=get('http://172.28.0.2:9000/api/sessions').json()[0]['name'].split('.')[0]
+    # if inference in the title of the experiment it means we want to do inference
+    # true, we need to load weights, set epoch to 0 and delete the training set
+    inference = experiment_name.find('inference') >= 0
     learning_rate = 0.01
     input_channels = 3
     number_classes = 3  # output channels should be one mask for binary class
