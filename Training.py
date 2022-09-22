@@ -18,8 +18,8 @@ def saving_checkpoint(epoch,model,optimizer,val_loss,test_loss,val_mIOU,test_mIO
         'optimizer_state_dict': optimizer.state_dict(),
         'Validation Loss': val_loss,
         'Test Loss': test_loss,
-        'MeanIOU test': test_mIOU,
-        'MeanIOU val': val_mIOU
+        'IOU Polyp test': test_mIOU,
+        'IOU Polyp val': val_mIOU
     }
     torch.save(checkpoint,
                colab_dir + '/checkpoints/highest_IOU_' + model_name + '.pt')
@@ -632,15 +632,15 @@ def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loa
 
                 # update the progress bar
                 pbar.set_postfix({phase + ' Epoch': str(epoch) + "/" + str(num_epochs - 1),
+                                  'polypIOU': np.mean(metrics_polyp, 0)[1],
+                                  'best_val_iou': best_iou['val'],
+                                  'best_test_iou': best_iou['test1'],
+                                  'mIOU': np.mean(iou_batches),
                                   'Loss': np.mean(loss_batches),
                                   'L2': np.mean(loss_l2_batches),
                                   'grad': np.mean(loss_grad_batches),
                                   'BCE_loss': np.mean(loss_mask_batches),
-                                  'polypIOU': np.mean(metrics_polyp, 0)[1],
-                                  'mIOU': np.mean(iou_batches),
                                   'original_images_grad': np.mean(original_images_grad),
-                                  'best_val_iou': best_iou['val'],
-                                  'best_test_iou': best_iou['test1'],
                                   })
 
             # !!!! important here we average the metrics across all images
@@ -667,7 +667,7 @@ def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loa
                         print('testing on a test set....\n')
                 if phase.find('test')>=0:#if we reach inside this, it means we achieved a better val iou
                     print('saving a checkpoint')
-                    best_iou[phase] = np.mean(iou_batches)
+                    best_iou[phase] = mean_metrics_polyp[1]
                     best_loss[phase] = np.mean(loss_batches)
                     if phase == 'test1': #I want to save the model weights only once, not for every test set
                         saving_checkpoint(epoch, model, optimizer,
