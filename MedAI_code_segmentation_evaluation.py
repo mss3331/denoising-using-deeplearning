@@ -103,7 +103,9 @@ def calculate_metrics_torch(true, pred, ROI='polyp',metrics=None, reduction=None
             recall = TP/(TP+FN)
             result = recall
         elif metric == 'precision':
-            prec = TP / (TP + FP)
+            TP_FP = (TP + FP)
+            TP_FP[TP_FP==0]+=1
+            prec = TP / TP_FP
             result = prec
         else:
             continue
