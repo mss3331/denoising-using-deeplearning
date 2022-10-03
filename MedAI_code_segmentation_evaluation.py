@@ -46,6 +46,65 @@ def filter_filtypes(path):
 def dice_score(y_true, y_pred):
     return np.sum(y_pred[y_true == 1] == 1) * 2.0 / (np.sum(y_pred[y_pred == 1] == 1) + np.sum(y_true[y_true == 1] == 1))
 
+def TP_TN_FP_FN(true, pred):
+    minus = true - pred
+    FP = (minus==-1).float().sum(dim=1)
+    FN = (minus==1).float().sum(dim=1)
+    TP_plus_TN = (minus==0).float().sum(dim=1)
+
+    multi = true * pred
+    TP = multi.sum(dim=1)
+    TN = TP_plus_TN - TP
+    return TP, TN, FP, FN
+
+def calculate_metrics_torch(true, pred, ROI='polyp',metrics=None):
+    '''The input are tensors of shape (batch, C, H, W)'''
+
+    batch_size = pred.shape[0]
+    # (batch, C, H, W)->(batch,HW)
+    true = true.clone().detach().argmax(dim=1).view(batch_size, -1).float()
+    pred = pred.clone().detach().argmax(dim=1).view(batch_size, -1).float()
+
+    #-------------------------------------------
+    if metrics== None:
+        metrics = 'accuracy', 'jaccard', 'dic', 'recall', 'precision'
+    elif type(metrics)==str:
+        metrics = [metrics]
+
+    #-------------------------------------------
+    if ROI=='polyp':
+        pass
+    elif ROI=='background':
+        true = 1- true
+        pred = 1- pred
+    #--------------------------------------------
+    TP, TN, FP, FN =TP_TN_FP_FN(true,pred)
+    #--------------------------------------------
+    results = []
+    for metric in metrics:
+        result = 0
+        if metric=='jaccard':
+            iou = TP/(TP + FN + FP)
+            result = iou
+        elif metric=='accuracy':
+            acc = (TP+TN)/(TP + FN + FP + TN)
+            result = acc
+        elif metric=='dic':
+            dic = 2*TP/(2*TP + FP + FN)
+            result = dic
+        elif metric=='recall':
+            recall = TP/(TP+FN)
+            result = recall
+        elif metric == 'precision':
+            prec = TP / (TP + FP)
+            result = prec
+        else:
+            continue
+        result = torch.mean(result).cpu().numpy().round(5)
+        results.append(result)
+
+    return results
+
 def calculate_metrics(y_true, y_pred):
     score_accuracy = accuracy_score(y_true, y_pred)
     score_jaccard = jaccard_score(y_true, y_pred, average="binary")
@@ -160,6 +219,7 @@ def IOU_class01(target, predicted,count=0):
         iou_score_0 = _iou(1-target_arr, 1-predicted_arr)
 
         iou_list.append((iou_score_0+iou_score_1)/2)
+
 
     # miou = iousum / target.shape[0]
     return np.mean(iou_list)
