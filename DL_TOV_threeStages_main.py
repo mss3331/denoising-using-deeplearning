@@ -207,12 +207,12 @@ if __name__ == '__main__':
     # EndoSceneStill train (C1), val (C2), test(C3)
     train_val_ratio = 0
     dataloasers = getLoadersBySetName('CVC_EndoSceneStill', 'data_C1',target_img_size,
-                                      train_val_ratio=train_val_ratio,batch_size=batch_size)
+                                      train_val_ratio=train_val_ratio,batch_size=batch_size,shuffle=shuffle)
     Dataloaders_dic['train']= dataloasers
     Dataloaders_dic['val'] = getLoadersBySetName('CVC_EndoSceneStill', 'data_C2',target_img_size,
-                                                 train_val_ratio=train_val_ratio,batch_size=batch_size)
+                                                 train_val_ratio=train_val_ratio,batch_size=batch_size,shuffle=shuffle)
     Dataloaders_dic['test1'] = getLoadersBySetName('CVC_EndoSceneStill', 'data_C3', target_img_size,
-                                                   train_val_ratio=0,batch_size=batch_size)
+                                                   train_val_ratio=0,batch_size=batch_size,shuffle=shuffle)
 
     print('datasets in total:',Dataloaders_dic.keys())
     for phase in Dataloaders_dic.keys():
