@@ -57,13 +57,18 @@ def TP_TN_FP_FN(true, pred):
     TN = TP_plus_TN - TP
     return TP, TN, FP, FN
 
-def calculate_metrics_torch(true, pred, ROI='polyp',metrics=None):
+def calculate_metrics_torch(true, pred, ROI='polyp',metrics=None, reduction=None,
+                            cloned_detached=False):
     '''The input are tensors of shape (batch, C, H, W)'''
 
     batch_size = pred.shape[0]
     # (batch, C, H, W)->(batch,HW)
-    true = true.clone().detach().argmax(dim=1).view(batch_size, -1).float()
-    pred = pred.clone().detach().argmax(dim=1).view(batch_size, -1).float()
+    if cloned_detached:
+        true = true.argmax(dim=1).view(batch_size, -1).float()
+        pred = pred.argmax(dim=1).view(batch_size, -1).float()
+    else:
+        true = true.clone().detach().argmax(dim=1).view(batch_size, -1).float()
+        pred = pred.clone().detach().argmax(dim=1).view(batch_size, -1).float()
 
     #-------------------------------------------
     if metrics== None:
@@ -77,6 +82,8 @@ def calculate_metrics_torch(true, pred, ROI='polyp',metrics=None):
     elif ROI=='background':
         true = 1- true
         pred = 1- pred
+    true.requires_grad = False
+    pred.requires_grad = False
     #--------------------------------------------
     TP, TN, FP, FN =TP_TN_FP_FN(true,pred)
     #--------------------------------------------
@@ -100,10 +107,20 @@ def calculate_metrics_torch(true, pred, ROI='polyp',metrics=None):
             result = prec
         else:
             continue
-        result = torch.mean(result).cpu().numpy().round(5)
+
+        if reduction=='mean':
+            result = torch.mean(result).cpu().numpy().round(5)
+        else:
+            result = result.cpu().numpy().round(5)
+
         results.append(result)
 
-    return results
+    results = np.array(results)
+    results_dic = {metric:results[index] for index, metric in enumerate(metrics)}
+    if len(results)==1:
+        results_dic = results[0]
+
+    return results_dic
 
 def calculate_metrics(y_true, y_pred):
     score_accuracy = accuracy_score(y_true, y_pred)

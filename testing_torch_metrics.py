@@ -14,14 +14,15 @@ start = time.time()
 
 truenp = true.clone().detach().argmax(dim=1).view(batch, -1).cpu().numpy()
 prednp = pred.clone().detach().argmax(dim=1).view(batch, -1).cpu().numpy()
-sk_jaccard = [sk.accuracy_score(truenp[i], prednp[i]) for i in range(batch)]
+sk_jaccard = [sk.jaccard_score(truenp[i], prednp[i]) for i in range(batch)]
 sk_jaccard_mean = np.mean(sk_jaccard)
 
 total_time = time.time() - start
 print('SK timer {}'.format(total_time))
 #-------------- Torch metrics ----------------
 start = time.time()
-torch_jaccard_mean = calculate_metrics_torch(true, pred)
+torch_jaccard_mean = calculate_metrics_torch(true, pred,metrics='jaccard',reduction=None)
+
 
 total_time = time.time() - start
 print('pytorch timer {}'.format(total_time))

@@ -6,7 +6,7 @@ from torch import nn
 from pprint import pprint
 import pandas
 from torchvision import transforms
-from MedAI_code_segmentation_evaluation import IOU_class01, calculate_metrics
+from MedAI_code_segmentation_evaluation import IOU_class01, calculate_metrics_torch
 from My_losses import *
 #TODO: delete the unecessarly model.train after the phase loop
 # TODO: Implement saving a checkpoint
@@ -549,11 +549,15 @@ def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loa
             loss_l2_batches = []
             loss_grad_batches = []
             loss_mask_batches = []
-            iou_batches = []
-            metrics_polyp = []
-            metrics_background = []
+            iou_batches = np.array([])
+            iou_background_batches = np.array([])
+            # metrics_polyp = []
+            # metrics_background = []
             original_images_grad = []
             generated_images_grad = []
+
+            all_true_maskes_torch = []
+            all_pred_maskes_torch = []
 
             pbar = tqdm(data_loader_dic[phase], total=len(data_loader_dic[phase]))
             for X, intermediate, original_masks in pbar:
@@ -601,22 +605,26 @@ def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loa
                             bce = loss_dic['segmentor']
                             loss_mask = bce(generated_masks, original_masks)
                             loss = loss_grad * lamda['grad'] + loss_l2 * lamda['l2'] + loss_mask
-                            # todo: calculating IOU per image added extra 10 seconds per epoch. For 300 epoch=50minutes extra
-                            iou = IOU_class01(original_masks, generated_masks)
-                            # todo: These 2 lines added 60 seconds due to making the CPU doing the workload
-                            original_masks_numpy = original_masks.clone().detach().cpu().argmax(dim=1).numpy().reshape(batch_size, -1)
-                            generated_masks_numpy = generated_masks.clone().detach().cpu().argmax(dim=1).numpy().reshape(batch_size, -1)
-                            # todo: calculating metrics per image is very slow (added extra 3 minutes)
-                            metrics_polyp += [calculate_metrics(original_masks_numpy[i], generated_masks_numpy[i]) for i in
-                                        range(batch_size)]
-                            metrics_background += [calculate_metrics(1-original_masks_numpy[i], 1-generated_masks_numpy[i]) for i
-                                              in range(batch_size)]
+
+                            # iou = IOU_class01(original_masks, generated_masks)
+                            # iou is numpy array for each image
+                            iou = calculate_metrics_torch(true=original_masks,pred=generated_masks,metrics='jaccard')
+                            iou_background = calculate_metrics_torch(true=original_masks,pred=generated_masks,
+                                                                     metrics='jaccard',ROI='background')
+                            #store all the true and pred masks
+                            if len(all_true_maskes_torch)==0:
+                                all_true_maskes_torch = original_masks.clone().detach()
+                                all_pred_maskes_torch = generated_masks.clone().detach()
+                            else:
+                                all_true_maskes_torch = torch.cat((all_true_maskes_torch,original_masks.clone().detach()))
+                                all_pred_maskes_torch = torch.cat((all_pred_maskes_torch,generated_masks.clone().detach()))
 
                     loss_batches.append(loss.clone().detach().cpu().numpy())
                     loss_l2_batches.append(loss_l2.clone().detach().cpu().numpy())
                     loss_grad_batches.append(loss_grad.clone().detach().cpu().numpy())
                     loss_mask_batches.append(loss_mask.clone().detach().cpu().numpy())
-                    iou_batches.append(iou)
+                    iou_batches=np.append(iou_batches,iou)
+                    iou_background_batches=np.append(iou_background_batches,iou_background)
                     original_images_grad.append(color_gradient(X).clone().detach().cpu().numpy())
                     generated_images_grad.append(color_gradient(generated_images).clone().detach().cpu().numpy())
                     if phase == 'train':
@@ -635,10 +643,10 @@ def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loa
 
                 # update the progress bar
                 pbar.set_postfix({phase + ' Epoch': str(epoch) + "/" + str(num_epochs - 1),
-                                  'polypIOU': np.mean(metrics_polyp, 0)[1],
+                                  'polypIOU': iou_batches.mean(),
                                   'best_val_iou': best_iou['val'],
                                   'best_test_iou': best_iou['test1'],
-                                  'mIOU': np.mean(iou_batches),
+                                  'mIOU': np.mean((iou_batches+iou_background_batches)/2),
                                   'Loss': np.mean(loss_batches),
                                   'L2': np.mean(loss_l2_batches),
                                   'grad': np.mean(loss_grad_batches),
@@ -646,8 +654,9 @@ def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loa
                                   'original_images_grad': np.mean(original_images_grad),
                                   })
 
-            # !!!! important here we average the metrics across all images
-            mean_metrics_polyp = np.mean(metrics_polyp, 0)
+            # !!!! calculate metrics for all images. The results are dictionary
+            mean_metrics_polyp = calculate_metrics_torch(all_true_maskes_torch, all_pred_maskes_torch,
+                                                         reduction='mean',cloned_detached=True)
             # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
             if phase != 'train':
@@ -660,17 +669,17 @@ def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loa
                         print('better validation loss')
                 if phase=='val' :
                     #if Polyp mean is getting better
-                    if mean_metrics_polyp[1] > best_iou[phase]:
+                    if mean_metrics_polyp['jaccard'] > best_iou[phase]:
                         wandb.run.summary["best_{}_iou".format(phase)] = np.mean(iou_batches)
                         wandb.run.summary["best_{}_iou_epoch".format(phase)] = epoch
-                        best_iou[phase] = mean_metrics_polyp[1] #Jaccard/IOU of polyp
+                        best_iou[phase] = mean_metrics_polyp['jaccard'] #Jaccard/IOU of polyp
                         best_loss[phase] = np.mean(loss_batches)
                         best_iou_epoch = epoch
                         print('best val_iou')
                         print('testing on a test set....\n')
                 if phase.find('test')>=0:#if we reach inside this, it means we achieved a better val iou
                     print('saving a checkpoint')
-                    best_iou[phase] = mean_metrics_polyp[1]
+                    best_iou[phase] = mean_metrics_polyp['jaccard']
                     best_loss[phase] = np.mean(loss_batches)
                     if phase == 'test1': #I want to save the model weights only once, not for every test set
                         saving_checkpoint(epoch, model, optimizer,
@@ -679,14 +688,13 @@ def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loa
                                       colab_dir, model_name)
                 # calculate summary results and store them in results
                 if best_iou_epoch == epoch:#calculate metrics for val and test if it is the best epoch
-                    mean_metrics_background = np.mean(metrics_background, 0)
-                    metrics_dic_polyp = dict(zip(["accuracy", "jaccard", "dice", "recall", "precision"],
-                                           mean_metrics_polyp))
-                    metrics_dic_background = dict(zip(["accuracy", "jaccard", "dice", "recall", "precision"],
-                                                 mean_metrics_background))
-                    mean_mMetrics = (mean_metrics_background+mean_metrics_background)/2
-                    metrics_mMetrics_dic = dict(zip(["accuracy", "jaccard", "dice", "recall", "precision"],
-                                                      mean_mMetrics))
+                    metrics_dic_background = calculate_metrics_torch(all_true_maskes_torch, all_pred_maskes_torch,
+                                                         reduction='mean',cloned_detached=True,ROI='background')
+                    metrics_dic_polyp = mean_metrics_polyp
+
+                    metrics_mMetrics_dic = {metric:(metrics_dic_polyp[metric]+metrics_dic_background[metric])/2
+                                            for metric in metrics_dic_background.keys()}
+
                     print(phase,':',metrics_dic_polyp)
                     wandb.run.summary["dict_{}".format(phase)] = metrics_dic_polyp
                     pandas.DataFrame.from_dict({'Polyp':metrics_dic_polyp,'Background': metrics_dic_background,
