@@ -170,7 +170,7 @@ if __name__ == '__main__':
     #                 Transfere Learning for vanilla models are added except for Unet
     #['GenSeg_Vanilla_none_unet', GenSeg_Vanilla_none_fcn, GenSeg_Vanilla_none_deeplab]
     #[GenSeg_Vanilla_TL_fcn, GenSeg_Vanilla_TL_deeplab]
-    model_name = "GenSeg_IncludeAugX_hue_avgV2_unet_unet"
+    model_name = "GenSeg_Vanilla_TL_fcn"
     model = getModel(model_name)
     if model_name.find('GenSeg')>=0:
         switch_epoch=[-1,-1]
@@ -206,10 +206,13 @@ if __name__ == '__main__':
     # Dataloaders_dic['test5'] = getLoadersBySetName('Kvasir_Seg', 'data_C5', target_img_size, train_val_ratio=0)
     # EndoSceneStill train (C1), val (C2), test(C3)
     train_val_ratio = 0
-    dataloasers = getLoadersBySetName('CVC_EndoSceneStill', 'data_C1',target_img_size, train_val_ratio)
+    dataloasers = getLoadersBySetName('CVC_EndoSceneStill', 'data_C1',target_img_size,
+                                      train_val_ratio=train_val_ratio,batch_size=batch_size)
     Dataloaders_dic['train']= dataloasers
-    Dataloaders_dic['val'] = getLoadersBySetName('CVC_EndoSceneStill', 'data_C2',target_img_size, train_val_ratio)
-    Dataloaders_dic['test1'] = getLoadersBySetName('CVC_EndoSceneStill', 'data_C3', target_img_size, train_val_ratio=0)
+    Dataloaders_dic['val'] = getLoadersBySetName('CVC_EndoSceneStill', 'data_C2',target_img_size,
+                                                 train_val_ratio=train_val_ratio,batch_size=batch_size)
+    Dataloaders_dic['test1'] = getLoadersBySetName('CVC_EndoSceneStill', 'data_C3', target_img_size,
+                                                   train_val_ratio=0,batch_size=batch_size)
 
     print('datasets in total:',Dataloaders_dic.keys())
     for phase in Dataloaders_dic.keys():
