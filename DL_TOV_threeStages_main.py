@@ -39,6 +39,7 @@ def initializWandb():
             "batch_size": batch_size,
             "lamda": lamda,
             "num_epochs": num_epochs,
+            "transfer_learning": transfer_learning,
             "dataset": root_dir.split("/")[-1], })
 
 def repreducibility():
@@ -57,6 +58,7 @@ def getStateDict(checkpoint):
 def getModel(model_name):
     # identify which models for Gen Seg
     Gen_Seg_arch = model_name.split('_')[-2:]
+    pretrained = model_name.find('TL') >= 0
 
     if model_name.find('unet-proposed')>=0:
         model = unet_proposed()
@@ -96,11 +98,10 @@ def getModel(model_name):
             model = GenSeg_IncludeX_ColorJitterGeneratorTrainOnly_avgV2(Gen_Seg_arch)
     elif model_name.find('IncludeAugX')>=0:
             if model_name.find('hue_avgV2')>=0:
-                model = GenSeg_IncludeAugX_hue_avgV2(Gen_Seg_arch)
+                model = GenSeg_IncludeAugX_hue_avgV2(Gen_Seg_arch,transfer_learning=pretrained)
             elif model_name.find('gray_avgV2')>=0:
                 model = GenSeg_IncludeAugX_gray_avgV2(Gen_Seg_arch)
     elif model_name.find('Vanilla') >= 0:
-        pretrained = model_name.find('TL')>=0
         model = GenSeg_Vanilla(Gen_Seg_arch,pretrained)
 
     else:
@@ -108,6 +109,45 @@ def getModel(model_name):
         exit(-1)
 
     return model
+
+def get_Dataloaders_dic(experimentDatasets):
+    '''for now let us make it simple and fixed. Later we would use Yaml config to design dataset.
+    for now the experiments as follows:
+    1- Train/val/test: EndoSceneStill
+    2- Train/val: CVC-clinicDB, test:Kvasir
+    3- Train/val: Kvasir, test: CVC-clinicDB
+    '''
+    Dataloaders_dic = {}
+    if experimentDatasets==None:
+        print('experimentDatasets is not provided')
+        exit(-1)
+
+    if experimentDatasets=='CVC_EndoSceneStill':
+        # EndoSceneStill train (C1), val (C2), test(C3)
+        train_val_ratio = 0
+        Dataloaders_dic['train'] = getLoadersBySetName('CVC_EndoSceneStill', 'data_C1', target_img_size,
+                                          train_val_ratio=train_val_ratio, batch_size=batch_size, shuffle=shuffle)
+        Dataloaders_dic['val'] = getLoadersBySetName('CVC_EndoSceneStill', 'data_C2', target_img_size,
+                                                     batch_size=batch_size, shuffle=shuffle)
+        Dataloaders_dic['test1'] = getLoadersBySetName('CVC_EndoSceneStill', 'data_C3', target_img_size,
+                                                       batch_size=batch_size, shuffle=shuffle)
+    elif experimentDatasets=='CVC-clinicDB':
+        # CVC train/val, Kvasir Test
+        train_val_ratio = 0.8
+        dataloasers = getLoadersBySetName('CVC_ClinicDB', 'data_C1',target_img_size, train_val_ratio)
+        Dataloaders_dic['train'], Dataloaders_dic['val'] = dataloasers
+        Dataloaders_dic['test1'] = getLoadersBySetName('Kvasir_Seg', 'data_C1', target_img_size, train_val_ratio=0,
+                                                       shuffle=shuffle)
+        Dataloaders_dic['test2'] = getLoadersBySetName('Kvasir_Seg', 'data_C2', target_img_size, train_val_ratio=0,
+                                                       shuffle=shuffle)
+        Dataloaders_dic['test3'] = getLoadersBySetName('Kvasir_Seg', 'data_C3', target_img_size, train_val_ratio=0,
+                                                       shuffle=shuffle)
+        Dataloaders_dic['test4'] = getLoadersBySetName('Kvasir_Seg', 'data_C4', target_img_size, train_val_ratio=0,
+                                                       shuffle=shuffle)
+        Dataloaders_dic['test5'] = getLoadersBySetName('Kvasir_Seg', 'data_C5', target_img_size, train_val_ratio=0,
+                                                       shuffle=shuffle)
+
+    return Dataloaders_dic
 
 
 if __name__ == '__main__':
@@ -122,6 +162,7 @@ if __name__ == '__main__':
     number_classes = 3  # output channels should be one mask for binary class
     switch_epoch = [50,150] # when to switch to the next training stage?
     run_in_colab = True
+    transfer_learning = True
 
     root_dir = r"E:\Databases\dummyDataset\train"
     child_dir = "data_C1"
@@ -141,7 +182,7 @@ if __name__ == '__main__':
 
     resize_factor = 0.75
     target_img_size = (int(288*resize_factor), int(384*resize_factor))
-    train_val_ratio = 0.8
+
 
     print("resize_factor={} and image size={}".format(resize_factor, target_img_size))
     # ************** modify for full experiment *************
@@ -159,7 +200,9 @@ if __name__ == '__main__':
     # GenSeg_IncludeX_conv, GenSeg_IncludeX_avg, GenSeg_IncludeX_avgV2_unet_unet,
     # GenSeg_IncludeX_convV2_unet_unet, GenSeg_IncludeX_ColorJitterGenerator_avgV2_unet_unet,
     # GenSeg_IncludeX_ColorJitterGeneratorTrainOnly_avgV2_unet_unet,
-    # GenSeg_IncludeAugX_hue_avgV2_unet_unet, GenSeg_IncludeAugX_gray_avgV2_unet_unet]
+    # GenSeg_IncludeAugX_hue_avgV2_unet_unet, GenSeg_IncludeAugX_gray_avgV2_unet_unet,
+    # GenSeg_IncludeAugX_hue_avgV2_TL_unet_fcn]
+    #
     #################### Conventional Segmentor models (i.e., online augmentation) with avgV2
     # [GenSeg_IncludeX_Conventional_avgV2_blure_unet, GenSeg_IncludeX_Conventional_avgV2_colorjitter_unet
     # GenSeg_IncludeX_Conventional_avgV2_hue_unet, GenSeg_IncludeX_Conventional_avgV2_brightness_unet]
@@ -194,25 +237,10 @@ if __name__ == '__main__':
     # Dataloaders_dic['test']=Dataloaders_test_dic['val']
     #dataset_name = [Kvasir_Seg*5, CVC_ClinicDB*1 ,ETIS_Larib*1, EndoCV*5] 5= data_C1, data_C2 ... data_C5
     #               CVC_EndoSceneStill
-    Dataloaders_dic= {}
-    # CVC train, Kvasir Test
-    # train_val_ratio = 0.8
-    # dataloasers = getLoadersBySetName('CVC_ClinicDB', 'data_C1',target_img_size, train_val_ratio)
-    # Dataloaders_dic['train'], Dataloaders_dic['val'] = dataloasers
-    # Dataloaders_dic['test1'] = getLoadersBySetName('Kvasir_Seg', 'data_C1', target_img_size, train_val_ratio=0)
-    # Dataloaders_dic['test2'] = getLoadersBySetName('Kvasir_Seg', 'data_C2', target_img_size, train_val_ratio=0)
-    # Dataloaders_dic['test3'] = getLoadersBySetName('Kvasir_Seg', 'data_C3', target_img_size, train_val_ratio=0)
-    # Dataloaders_dic['test4'] = getLoadersBySetName('Kvasir_Seg', 'data_C4', target_img_size, train_val_ratio=0)
-    # Dataloaders_dic['test5'] = getLoadersBySetName('Kvasir_Seg', 'data_C5', target_img_size, train_val_ratio=0)
-    # EndoSceneStill train (C1), val (C2), test(C3)
-    train_val_ratio = 0
-    dataloasers = getLoadersBySetName('CVC_EndoSceneStill', 'data_C1',target_img_size,
-                                      train_val_ratio=train_val_ratio,batch_size=batch_size,shuffle=shuffle)
-    Dataloaders_dic['train']= dataloasers
-    Dataloaders_dic['val'] = getLoadersBySetName('CVC_EndoSceneStill', 'data_C2',target_img_size,
-                                                 train_val_ratio=train_val_ratio,batch_size=batch_size,shuffle=shuffle)
-    Dataloaders_dic['test1'] = getLoadersBySetName('CVC_EndoSceneStill', 'data_C3', target_img_size,
-                                                   train_val_ratio=0,batch_size=batch_size,shuffle=shuffle)
+    #experimentDatasets = (CVC_EndoSceneStill (train/val/test), CVC_ClinicDB,Kvasir_Seg )
+    experimentDatasets = 'CVC_ClinicDB'
+    Dataloaders_dic= get_Dataloaders_dic(experimentDatasets)
+
 
     print('datasets in total:',Dataloaders_dic.keys())
     for phase in Dataloaders_dic.keys():
