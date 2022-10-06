@@ -134,18 +134,19 @@ def get_Dataloaders_dic(experimentDatasets):
     elif experimentDatasets=='CVC-clinicDB':
         # CVC train/val, Kvasir Test
         train_val_ratio = 0.8
-        dataloasers = getLoadersBySetName('CVC_ClinicDB', 'data_C1',target_img_size, train_val_ratio)
+        dataloasers = getLoadersBySetName('CVC_ClinicDB', 'data_C1',target_img_size, train_val_ratio=train_val_ratio,
+                                          shuffle=shuffle, batch_size=batch_size)
         Dataloaders_dic['train'], Dataloaders_dic['val'] = dataloasers
         Dataloaders_dic['test1'] = getLoadersBySetName('Kvasir_Seg', 'data_C1', target_img_size, train_val_ratio=0,
-                                                       shuffle=shuffle)
+                                                       batch_size=batch_size)
         Dataloaders_dic['test2'] = getLoadersBySetName('Kvasir_Seg', 'data_C2', target_img_size, train_val_ratio=0,
-                                                       shuffle=shuffle)
+                                                        batch_size=batch_size)
         Dataloaders_dic['test3'] = getLoadersBySetName('Kvasir_Seg', 'data_C3', target_img_size, train_val_ratio=0,
-                                                       shuffle=shuffle)
+                                                        batch_size=batch_size)
         Dataloaders_dic['test4'] = getLoadersBySetName('Kvasir_Seg', 'data_C4', target_img_size, train_val_ratio=0,
-                                                       shuffle=shuffle)
+                                                        batch_size=batch_size)
         Dataloaders_dic['test5'] = getLoadersBySetName('Kvasir_Seg', 'data_C5', target_img_size, train_val_ratio=0,
-                                                       shuffle=shuffle)
+                                                        batch_size=batch_size)
 
     return Dataloaders_dic
 
