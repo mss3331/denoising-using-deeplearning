@@ -131,7 +131,7 @@ def get_Dataloaders_dic(experimentDatasets):
                                                      batch_size=batch_size, shuffle=shuffle)
         Dataloaders_dic['test1'] = getLoadersBySetName('CVC_EndoSceneStill', 'data_C3', target_img_size,
                                                        batch_size=batch_size, shuffle=shuffle)
-    elif experimentDatasets=='CVC-clinicDB':
+    elif experimentDatasets=='CVC_ClinicDB':
         # CVC train/val, Kvasir Test
         train_val_ratio = 0.8
         dataloasers = getLoadersBySetName('CVC_ClinicDB', 'data_C1',target_img_size, train_val_ratio=train_val_ratio,
@@ -147,6 +147,9 @@ def get_Dataloaders_dic(experimentDatasets):
                                                         batch_size=batch_size)
         Dataloaders_dic['test5'] = getLoadersBySetName('Kvasir_Seg', 'data_C5', target_img_size, train_val_ratio=0,
                                                         batch_size=batch_size)
+    else:
+        print("I didn't find so called experiment=",experimentDatasets)
+        exit(-1)
 
     return Dataloaders_dic
 
