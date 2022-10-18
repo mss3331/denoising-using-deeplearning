@@ -26,6 +26,7 @@ from torch.utils.data import DataLoader
 wandb.login(key="38818beaffe50c5403d3f87b288d36d1b38372f8")
 # from prettytable import PrettyTable
 def initializWandb():
+    transfer_learning = model_name.find('TL') >= 0
     wandbproject_name = "denoising"
     wandb.init(
         project=wandbproject_name,
@@ -39,8 +40,9 @@ def initializWandb():
             "batch_size": batch_size,
             "lamda": lamda,
             "num_epochs": num_epochs,
+            "shuffle": shuffle,
             "transfer_learning": transfer_learning,
-            "dataset": root_dir.split("/")[-1], })
+            "dataset": experimentDatasets, })
 
 def repreducibility():
     torch.manual_seed(0)
