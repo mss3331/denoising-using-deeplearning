@@ -24,12 +24,24 @@ class Deeplabv3(nn.Module):
         # self.dl.classifier = DeepLabHead(2048, num_classes)
         # self.dl.classifier[0].project[3]=nn.Dropout(p=0, inplace=False)
 
+    def forward(self, x):
+        x = self.dl(x)['out']
+        # x_softmax = F.softmax(x, dim=1)
+        return x#, x_softmax
+
+class Lraspp(nn.Module):
+    def __init__(self,num_classes,backbone=None,pretrianed=False):
+        super(Lraspp, self).__init__()
+        self.dl = models.segmentation.lraspp_mobilenet_v3_large(pretrained=pretrianed, progress=True)
+        self.dl.classifier.low_classifier = torch.nn.Conv2d(40, num_classes, 1)
+        self.dl.classifier.high_classifier = torch.nn.Conv2d(128, num_classes, 1)
 
 
     def forward(self, x):
         x = self.dl(x)['out']
         # x_softmax = F.softmax(x, dim=1)
         return x#, x_softmax
+
 
 class Deeplabv3_GRU_ASPP(nn.Module):
     def __init__(self,num_classes,backbone="resnet50"):

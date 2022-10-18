@@ -217,8 +217,8 @@ if __name__ == '__main__':
     ################### Vanilla models (i.e., no generator and no augmentation) #######################
     #                 Transfere Learning for vanilla models are added except for Unet
     #['GenSeg_Vanilla_none_unet', GenSeg_Vanilla_none_fcn, GenSeg_Vanilla_none_deeplab]
-    #[GenSeg_Vanilla_TL_fcn, GenSeg_Vanilla_TL_deeplab]
-    model_name = "GenSeg_Vanilla_TL_fcn"
+    #[GenSeg_Vanilla_TL_fcn, GenSeg_Vanilla_TL_deeplab, GenSeg_Vanilla_TL_lraspp]
+    model_name = "GenSeg_Vanilla_TL_lraspp"
     model = getModel(model_name)
     if model_name.find('GenSeg')>=0:
         switch_epoch=[-1,-1]

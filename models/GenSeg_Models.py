@@ -15,6 +15,8 @@ def getModel(model_name='unet',pretrianed=False, in_channels=3, out_channels=2,)
         model = DeepLabModels.Deeplabv3(num_classes=out_channels, pretrianed=pretrianed)
     elif model_name == 'fcn':
         model = FCNModels.FCN(num_classes=out_channels, pretrianed=pretrianed)
+    elif model_name == 'lraspp':
+        model = DeepLabModels.Lraspp(num_classes=out_channels, pretrianed=pretrianed)
     elif model_name == 'unet':
         model = unet.UNet(in_channels=in_channels,
               out_channels=out_channels,
