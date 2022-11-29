@@ -167,6 +167,8 @@ if __name__ == '__main__':
     input_channels = 3
     number_classes = 3  # output channels should be one mask for binary class
     switch_epoch = [50,150] # when to switch to the next training stage?
+    # If true, it means I wanted to save the best generator parameters as well as the best segmentor parameters.
+    save_generator_checkpoints = True
     run_in_colab = True
 
     root_dir = r"E:\Databases\dummyDataset\train"
@@ -218,7 +220,7 @@ if __name__ == '__main__':
     #                 Transfere Learning for vanilla models are added except for Unet
     #['GenSeg_Vanilla_none_unet', GenSeg_Vanilla_none_fcn, GenSeg_Vanilla_none_deeplab]
     #[GenSeg_Vanilla_TL_fcn, GenSeg_Vanilla_TL_deeplab, GenSeg_Vanilla_TL_lraspp]
-    model_name = "GenSeg_Vanilla_TL_lraspp"
+    model_name = "GenSeg_IncludeAugX_hue_avgV2_TL_unet_lraspp"
     model = getModel(model_name)
     if model_name.find('GenSeg')>=0:
         switch_epoch=[-1,-1]
@@ -276,7 +278,7 @@ if __name__ == '__main__':
     start = time.time()
 
     Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_fn,
-                  Dataloaders_dic, device, switch_epoch,colab_dir, model_name)
+                  Dataloaders_dic, device, switch_epoch,colab_dir, model_name,save_generator_checkpoints)
 
     wandb.save(colab_dir + '/*.py')
     wandb.save(colab_dir + '/results/*')

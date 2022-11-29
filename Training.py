@@ -10,7 +10,9 @@ from MedAI_code_segmentation_evaluation import IOU_class01, calculate_metrics_to
 from My_losses import *
 #TODO: delete the unecessarly model.train after the phase loop
 # TODO: Implement saving a checkpoint
-def saving_checkpoint(epoch,model,optimizer,val_loss,test_loss,val_mIOU,test_mIOU, colab_dir, model_name):
+def saving_checkpoint(epoch,model,optimizer,val_loss,test_loss,
+                      val_mIOU,test_mIOU, colab_dir, model_name, save_generator_checkpoints = False):
+
     checkpoint = {
         'epoch': epoch + 1,
         'description': "add your description",
@@ -21,8 +23,13 @@ def saving_checkpoint(epoch,model,optimizer,val_loss,test_loss,val_mIOU,test_mIO
         'IOU Polyp test': test_mIOU,
         'IOU Polyp val': val_mIOU
     }
-    torch.save(checkpoint,
+    if save_generator_checkpoints:
+        torch.save(checkpoint,
+                   colab_dir + '/checkpoints/gen_highest_loss_' + model_name + '.pt')
+    else:
+        torch.save(checkpoint,
                colab_dir + '/checkpoints/highest_IOU_' + model_name + '.pt')
+
     print("finished saving checkpoint")
 
 def training_loop(num_epochs, optimizer, lamda, model, loss_fn, data_loader_dic, device):
@@ -523,11 +530,17 @@ def three_stages_training_loop(num_epochs, optimizer, lamda, model, loss_dic, da
                        'best_val_iou':best_val_iou ,phase+"_epoch": epoch},
                       step=epoch)
 
-def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loader_dic, device,switch_epoch,colab_dir, model_name):
+def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loader_dic,
+                         device,switch_epoch,colab_dir, model_name, save_generator_checkpoints):
     best_loss = {k: 1000 for k in data_loader_dic.keys()}
     best_iou = {k: 0 for k in data_loader_dic.keys()}
     best_iou_epoch = -1
     loss_fn_sum = loss_dic['generator']
+    #this variable to track the performance of the generator
+    # this number is created according to the best gen loss at
+    # Denoising_trainCVC_testKvasir_Exp4_IncludeAugX_hue_avgV2_unet_Lraspp
+    # best_val_generator_loss=0.005
+    best_val_generator_loss=1000
     for epoch in range(0, num_epochs + 1):
 
         for phase in data_loader_dic.keys():
@@ -677,6 +690,15 @@ def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loa
                         best_iou_epoch = epoch
                         print('best val_iou')
                         print('testing on a test set....\n')
+                    #if the generator is getting better save a checkpoint for the generator
+                    generator_loss = np.mean(loss_l2_batches) + np.mean(loss_grad_batches)
+                    if best_val_generator_loss > generator_loss:
+                        saving_checkpoint(epoch, model, optimizer,
+                                          generator_loss, generator_loss,
+                                          generator_loss, generator_loss,
+                                          colab_dir, model_name, save_generator_checkpoints=True)
+                        best_val_generator_loss = generator_loss
+
                 if phase.find('test')>=0:#if we reach inside this, it means we achieved a better val iou
                     print('saving a checkpoint')
                     best_iou[phase] = mean_metrics_polyp['jaccard']
