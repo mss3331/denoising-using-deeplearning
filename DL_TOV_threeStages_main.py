@@ -287,13 +287,16 @@ if __name__ == '__main__':
                 './denoising-using-deeplearning/checkpoints/highest_IOU_{}.pt'.format(model_name))
             checkpoint_generator = torch.load(
                 './denoising-using-deeplearning/checkpoints/gen_highest_loss_{}.pt'.format(model_name))
-            # modify the generator state dictionary
-            for i in checkpoint_generator.keys():
-                # update only Generator
-                if i.find('Segmentor')>=0: break
-                checkpoint_segmentor[i] = checkpoint_generator[i]
 
             state_dict = getStateDict(checkpoint_segmentor)
+            state_dict_gen = getStateDict(checkpoint_generator)
+            # modify the generator state dictionary
+            for i in state_dict_gen.keys():
+                # update only Generator
+                if i.find('Segmentor')>=0: break
+                state_dict[i] = state_dict_gen[i]
+
+
             model.load_state_dict(state_dict)
             Dataloaders_dic.pop('train')
 
