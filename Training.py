@@ -681,6 +681,16 @@ def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loa
                     if phase=='val':
                         print('better validation loss')
                 if phase=='val' :
+                    # if the generator is getting better save a checkpoint for the generator
+                    generator_loss = np.mean(loss_l2_batches) + np.mean(loss_grad_batches)
+                    print('saving a checkpoint for the best generator')
+                    if best_val_generator_loss > generator_loss:
+                        saving_checkpoint(epoch, model, optimizer,
+                                          generator_loss, generator_loss,
+                                          generator_loss, generator_loss,
+                                          colab_dir, model_name, save_generator_checkpoints=True)
+                        best_val_generator_loss = generator_loss
+                        
                     #if Polyp mean is getting better
                     if mean_metrics_polyp['jaccard'] > best_iou[phase]:
                         wandb.run.summary["best_{}_iou".format(phase)] = np.mean(iou_batches)
@@ -690,14 +700,7 @@ def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loa
                         best_iou_epoch = epoch
                         print('best val_iou')
                         print('testing on a test set....\n')
-                    #if the generator is getting better save a checkpoint for the generator
-                    generator_loss = np.mean(loss_l2_batches) + np.mean(loss_grad_batches)
-                    if best_val_generator_loss > generator_loss:
-                        saving_checkpoint(epoch, model, optimizer,
-                                          generator_loss, generator_loss,
-                                          generator_loss, generator_loss,
-                                          colab_dir, model_name, save_generator_checkpoints=True)
-                        best_val_generator_loss = generator_loss
+
 
                 if phase.find('test')>=0:#if we reach inside this, it means we achieved a better val iou
                     print('saving a checkpoint')

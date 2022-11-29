@@ -279,6 +279,25 @@ if __name__ == '__main__':
 
     Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_fn,
                   Dataloaders_dic, device, switch_epoch,colab_dir, model_name,save_generator_checkpoints)
+    # test an inference epoch given two checkpoints
+    if save_generator_checkpoints:
+            num_epochs = 0
+            lamda = {"l2": 1, "grad": 1}
+            checkpoint_segmentor = torch.load(
+                './denoising-using-deeplearning/checkpoints/highest_IOU_{}.pt'.format(model_name))
+            checkpoint_generator = torch.load(
+                './denoising-using-deeplearning/checkpoints/gen_highest_loss_{}.pt'.format(model_name))
+            # modify the generator state dictionary
+            for i in checkpoint_generator.keys():
+                # update only Generator
+                if i.find('Segmentor')>=0: break
+                checkpoint_segmentor[i] = checkpoint_generator[i]
+
+            state_dict = getStateDict(checkpoint_segmentor)
+            model.load_state_dict(state_dict)
+            Dataloaders_dic.pop('train')
+
+
 
     wandb.save(colab_dir + '/*.py')
     wandb.save(colab_dir + '/results/*')
