@@ -683,8 +683,10 @@ def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loa
                 if phase=='val' :
                     # if the generator is getting better save a checkpoint for the generator
                     generator_loss = np.mean(loss_l2_batches) + np.mean(loss_grad_batches)
-                    print('saving a checkpoint for the best generator')
+
                     if best_val_generator_loss > generator_loss:
+                        print('saving a checkpoint for the best generator '
+                              '\n previously={} and now='.format(best_val_generator_loss,generator_loss))
                         saving_checkpoint(epoch, model, optimizer,
                                           generator_loss, generator_loss,
                                           generator_loss, generator_loss,
