@@ -228,6 +228,9 @@ if __name__ == '__main__':
         #we don't have Generator here, hence, nothing to optimize
         lamda = {"l2": 0, "grad": 0}
 
+    # experimentDatasets = (CVC_EndoSceneStill (train/val/test), CVC_ClinicDB,Kvasir_Seg )
+    experimentDatasets = 'CVC_ClinicDB'
+
     # Start WandB recording
     initializWandb()
     print("Experiment name:",experiment_name)
@@ -244,8 +247,7 @@ if __name__ == '__main__':
     # Dataloaders_dic['test']=Dataloaders_test_dic['val']
     #dataset_name = [Kvasir_Seg*5, CVC_ClinicDB*1 ,ETIS_Larib*1, EndoCV*5] 5= data_C1, data_C2 ... data_C5
     #               CVC_EndoSceneStill
-    #experimentDatasets = (CVC_EndoSceneStill (train/val/test), CVC_ClinicDB,Kvasir_Seg )
-    experimentDatasets = 'CVC_ClinicDB'
+
     Dataloaders_dic= get_Dataloaders_dic(experimentDatasets)
 
 
@@ -279,6 +281,13 @@ if __name__ == '__main__':
 
     Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_fn,
                   Dataloaders_dic, device, switch_epoch,colab_dir, model_name,save_generator_checkpoints)
+
+    ########################                 ########################
+    #    inference epoch using best generator and best segmentor
+    ########################                 ########################
+
+    print("====="*3,' inference time ',"====="*3)
+
     # test an inference epoch given two checkpoints
     if save_generator_checkpoints:
             num_epochs = 0
@@ -287,7 +296,6 @@ if __name__ == '__main__':
                 './denoising-using-deeplearning/checkpoints/highest_IOU_{}.pt'.format(model_name))
             checkpoint_generator = torch.load(
                 './denoising-using-deeplearning/checkpoints/gen_highest_loss_{}.pt'.format(model_name))
-
             state_dict = getStateDict(checkpoint_segmentor)
             state_dict_gen = getStateDict(checkpoint_generator)
             # modify the generator state dictionary
@@ -295,15 +303,11 @@ if __name__ == '__main__':
                 # update only Generator
                 if i.find('Segmentor')>=0: break
                 state_dict[i] = state_dict_gen[i]
-
-
             model.load_state_dict(state_dict)
             Dataloaders_dic.pop('train')
 
     Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_fn,
                          Dataloaders_dic, device, switch_epoch, colab_dir, model_name, save_generator_checkpoints)
-
-
 
     wandb.save(colab_dir + '/*.py')
     wandb.save(colab_dir + '/results/*')
