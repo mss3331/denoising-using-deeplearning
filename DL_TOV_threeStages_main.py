@@ -307,7 +307,8 @@ if __name__ == '__main__':
             Dataloaders_dic.pop('train')
 
     Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_fn,
-                         Dataloaders_dic, device, switch_epoch, colab_dir, model_name, save_generator_checkpoints)
+                         Dataloaders_dic, device, switch_epoch, colab_dir,
+                         model_name, save_generator_checkpoints, inference)
 
     wandb.save(colab_dir + '/*.py')
     wandb.save(colab_dir + '/results/*')

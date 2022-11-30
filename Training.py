@@ -531,7 +531,8 @@ def three_stages_training_loop(num_epochs, optimizer, lamda, model, loss_dic, da
                       step=epoch)
 
 def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loader_dic,
-                         device,switch_epoch,colab_dir, model_name, save_generator_checkpoints):
+                         device,switch_epoch,colab_dir,
+                         model_name, save_generator_checkpoints,inference=False):
     best_loss = {k: 1000 for k in data_loader_dic.keys()}
     best_iou = {k: 0 for k in data_loader_dic.keys()}
     best_iou_epoch = -1
@@ -725,7 +726,7 @@ def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loa
                     print(phase,':',metrics_dic_polyp)
                     wandb.run.summary["dict_{}".format(phase)] = metrics_dic_polyp
 
-                    if save_generator_checkpoints:
+                    if inference:
                         file_name = colab_dir + "/results/bestGenerator_{}_summary_report.xlsx".format(phase)
                     else:
                         file_name = colab_dir + "/results/{}_summary_report.xlsx".format(phase)
