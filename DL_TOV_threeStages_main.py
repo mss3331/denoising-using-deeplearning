@@ -286,7 +286,7 @@ if __name__ == '__main__':
     #    inference epoch using best generator and best segmentor
     ########################                 ########################
 
-    print("====="*3,' inference time ',"====="*3)
+    print('\n',"====="*3,' inference time ',"====="*3,'\n','='*50)
 
     # test an inference epoch given two checkpoints
     if save_generator_checkpoints:
