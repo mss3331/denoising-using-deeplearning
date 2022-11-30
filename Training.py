@@ -532,7 +532,7 @@ def three_stages_training_loop(num_epochs, optimizer, lamda, model, loss_dic, da
 
 def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loader_dic,
                          device,switch_epoch,colab_dir,
-                         model_name, save_generator_checkpoints,inference=False):
+                         model_name,inference=False):
     best_loss = {k: 1000 for k in data_loader_dic.keys()}
     best_iou = {k: 0 for k in data_loader_dic.keys()}
     best_iou_epoch = -1
