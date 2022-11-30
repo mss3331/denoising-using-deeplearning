@@ -724,8 +724,13 @@ def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loa
 
                     print(phase,':',metrics_dic_polyp)
                     wandb.run.summary["dict_{}".format(phase)] = metrics_dic_polyp
+
+                    if save_generator_checkpoints:
+                        file_name = colab_dir + "/results/bestGenerator_{}_summary_report.xlsx".format(phase)
+                    else:
+                        file_name = colab_dir + "/results/{}_summary_report.xlsx".format(phase)
                     pandas.DataFrame.from_dict({'Polyp':metrics_dic_polyp,'Background': metrics_dic_background,
-                                                'Mean':metrics_mMetrics_dic}).transpose().to_excel(colab_dir + "/results/{}_summary_report.xlsx".format(phase))
+                                                'Mean':metrics_mMetrics_dic}).transpose().to_excel(file_name)
 
             wandb.log({phase + "_loss": np.mean(loss_batches),
                        phase + "_L2": np.mean(loss_l2_batches), phase + "_grad": np.mean(loss_grad_batches),
