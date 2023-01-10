@@ -149,6 +149,26 @@ def get_Dataloaders_dic(experimentDatasets):
                                                         batch_size=batch_size)
         Dataloaders_dic['test5'] = getLoadersBySetName('Kvasir_Seg', 'data_C5', target_img_size, train_val_ratio=0,
                                                         batch_size=batch_size)
+    elif experimentDatasets=='CVC_ClinicDB_Brightness':
+        # CVC train/val, Kvasir Test
+        # train_val_ratio = 0.8
+        # dataloasers = getLoadersBySetName('CVC_ClinicDB', 'data_C1',target_img_size, train_val_ratio=train_val_ratio,
+        #                                   shuffle=shuffle, batch_size=batch_size)
+        # Dataloaders_dic['train'], Dataloaders_dic['val'] = dataloasers
+        Dataloaders_dic['train'] = getLoadersBySetName('CVC_ClinicDB_Brightness', 'data_C1', target_img_size, train_val_ratio=0,
+                                                       batch_size=batch_size)
+        Dataloaders_dic['val'] = getLoadersBySetName('CVC_ClinicDB_Brightness', 'data_C2', target_img_size, train_val_ratio=0,
+                                                       batch_size=batch_size)
+        Dataloaders_dic['test1'] = getLoadersBySetName('Kvasir_Seg', 'data_C1', target_img_size, train_val_ratio=0,
+                                                       batch_size=batch_size)
+        Dataloaders_dic['test2'] = getLoadersBySetName('Kvasir_Seg', 'data_C2', target_img_size, train_val_ratio=0,
+                                                        batch_size=batch_size)
+        Dataloaders_dic['test3'] = getLoadersBySetName('Kvasir_Seg', 'data_C3', target_img_size, train_val_ratio=0,
+                                                        batch_size=batch_size)
+        Dataloaders_dic['test4'] = getLoadersBySetName('Kvasir_Seg', 'data_C4', target_img_size, train_val_ratio=0,
+                                                        batch_size=batch_size)
+        Dataloaders_dic['test5'] = getLoadersBySetName('Kvasir_Seg', 'data_C5', target_img_size, train_val_ratio=0,
+                                                        batch_size=batch_size)
     else:
         print("I didn't find so called experiment=",experimentDatasets)
         exit(-1)
@@ -168,7 +188,7 @@ if __name__ == '__main__':
     number_classes = 3  # output channels should be one mask for binary class
     switch_epoch = [50,150] # when to switch to the next training stage?
     # If true, it means I wanted to save the best generator parameters as well as the best segmentor parameters.
-    save_generator_checkpoints = True
+    save_generator_checkpoints = False
     run_in_colab = True
 
     root_dir = r"E:\Databases\dummyDataset\train"
@@ -228,8 +248,9 @@ if __name__ == '__main__':
         #we don't have Generator here, hence, nothing to optimize
         lamda = {"l2": 0, "grad": 0}
 
-    # experimentDatasets = (CVC_EndoSceneStill (train/val/test), CVC_ClinicDB,Kvasir_Seg )
-    experimentDatasets = 'CVC_ClinicDB'
+    # experimentDatasets = (CVC_EndoSceneStill (train/val/test), CVC_ClinicDB,Kvasir_Seg,
+    # CVC_ClinicDB_Brightness )
+    experimentDatasets = 'CVC_ClinicDB_Brightness'
 
     # Start WandB recording
     initializWandb()
@@ -291,23 +312,23 @@ if __name__ == '__main__':
 
     # test an inference epoch given two checkpoints
     if save_generator_checkpoints:
-            num_epochs = 0
-            lamda = {"l2": 1, "grad": 1}
-            checkpoint_segmentor = torch.load(
-                './denoising-using-deeplearning/checkpoints/highest_IOU_{}.pt'.format(model_name))
-            checkpoint_generator = torch.load(
-                './denoising-using-deeplearning/checkpoints/gen_highest_loss_{}.pt'.format(model_name))
-            state_dict = getStateDict(checkpoint_segmentor)
-            state_dict_gen = getStateDict(checkpoint_generator)
-            # modify the generator state dictionary
-            for i in state_dict_gen.keys():
-                # update only Generator
-                if i.find('Segmentor')>=0: break
-                state_dict[i] = state_dict_gen[i]
-            model.load_state_dict(state_dict)
-            Dataloaders_dic.pop('train')
+        num_epochs = 0
+        lamda = {"l2": 1, "grad": 1}
+        checkpoint_segmentor = torch.load(
+            './denoising-using-deeplearning/checkpoints/highest_IOU_{}.pt'.format(model_name))
+        checkpoint_generator = torch.load(
+            './denoising-using-deeplearning/checkpoints/gen_highest_loss_{}.pt'.format(model_name))
+        state_dict = getStateDict(checkpoint_segmentor)
+        state_dict_gen = getStateDict(checkpoint_generator)
+        # modify the generator state dictionary
+        for i in state_dict_gen.keys():
+            # update only Generator
+            if i.find('Segmentor')>=0: break
+            state_dict[i] = state_dict_gen[i]
+        model.load_state_dict(state_dict)
+        Dataloaders_dic.pop('train')
 
-    Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_fn,
+        Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_fn,
                          Dataloaders_dic, device, switch_epoch, colab_dir,
                          model_name, inference=True)
 
