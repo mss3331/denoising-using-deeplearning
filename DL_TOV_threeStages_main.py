@@ -149,15 +149,17 @@ def get_Dataloaders_dic(experimentDatasets):
                                                         batch_size=batch_size)
         Dataloaders_dic['test5'] = getLoadersBySetName('Kvasir_Seg', 'data_C5', target_img_size, train_val_ratio=0,
                                                         batch_size=batch_size)
-    elif experimentDatasets=='CVC_ClinicDB_Brightness':
+    elif experimentDatasets in ['CVC_ClinicDB_Brightness','CVC_ClinicDB_Brightness20'
+                                ,'CVC_ClinicDB_flipping','CVC_ClinicDB_rotate'
+                                ,'CVC_ClinicDB_shear']:
         # CVC train/val, Kvasir Test
         # train_val_ratio = 0.8
         # dataloasers = getLoadersBySetName('CVC_ClinicDB', 'data_C1',target_img_size, train_val_ratio=train_val_ratio,
         #                                   shuffle=shuffle, batch_size=batch_size)
         # Dataloaders_dic['train'], Dataloaders_dic['val'] = dataloasers
-        Dataloaders_dic['train'] = getLoadersBySetName('CVC_ClinicDB_Brightness', 'data_C1', target_img_size, train_val_ratio=0,
+        Dataloaders_dic['train'] = getLoadersBySetName(experimentDatasets, 'data_C1', target_img_size, train_val_ratio=0,
                                                        batch_size=batch_size)
-        Dataloaders_dic['val'] = getLoadersBySetName('CVC_ClinicDB_Brightness', 'data_C2', target_img_size, train_val_ratio=0,
+        Dataloaders_dic['val'] = getLoadersBySetName(experimentDatasets, 'data_C2', target_img_size, train_val_ratio=0,
                                                        batch_size=batch_size)
         Dataloaders_dic['test1'] = getLoadersBySetName('Kvasir_Seg', 'data_C1', target_img_size, train_val_ratio=0,
                                                        batch_size=batch_size)
@@ -169,6 +171,8 @@ def get_Dataloaders_dic(experimentDatasets):
                                                         batch_size=batch_size)
         Dataloaders_dic['test5'] = getLoadersBySetName('Kvasir_Seg', 'data_C5', target_img_size, train_val_ratio=0,
                                                         batch_size=batch_size)
+
+        
     else:
         print("I didn't find so called experiment=",experimentDatasets)
         exit(-1)
@@ -249,8 +253,8 @@ if __name__ == '__main__':
         lamda = {"l2": 0, "grad": 0}
 
     # experimentDatasets = (CVC_EndoSceneStill (train/val/test), CVC_ClinicDB,Kvasir_Seg,
-    # CVC_ClinicDB_Brightness )
-    experimentDatasets = 'CVC_ClinicDB_Brightness'
+    # CVC_ClinicDB_Brightness20, CVC_ClinicDB_flipping )
+    experimentDatasets = 'CVC_ClinicDB_flipping'
 
     # Start WandB recording
     initializWandb()

@@ -11,12 +11,15 @@ import collections
 def getLoadersBySetName(dataset_name, data_C,target_img_size, train_val_ratio=0,batch_size=7,shuffle=False,):
     #input should be dataset_name="CVC-ClinicDB",  data_C="data_C1", split_ratio=0.5
     #output dataloader1 OR dataloader1, dataloader2 if split_ratio != 0 (i.e., we want train/val dataloaders)
-    databases = {'EndoCV': "/content/trainData_EndoCV2021_5_Feb2021",
-                 'CVC_ClinicDB': '/content/CVC-ClinicDB',
-                 'CVC_ClinicDB_Brightness':'/content/CVC-ClinicDB-Brightness',
-                 'Kvasir_Seg': '/content/Kvasir-SEG',
-                 'ETIS_Larib':'/content/ETIS-LaribPolypDB',
-                  'CVC_EndoSceneStill':'/content/CVC-EndoSceneStill'}
+    # databases = {'EndoCV': "/content/trainData_EndoCV2021_5_Feb2021",
+    #              'CVC_ClinicDB': '/content/CVC-ClinicDB',
+    #              'CVC_ClinicDB_Brightness':'/content/CVC-ClinicDB-Brightness',
+    #              'CVC_ClinicDB_flipping': '/content/CVC-ClinicDB-flipping',
+    #              'Kvasir_Seg': '/content/Kvasir-SEG',
+    #              'ETIS_Larib':'/content/ETIS-LaribPolypDB',
+    #               'CVC_EndoSceneStill':'/content/CVC-EndoSceneStill'}
+    databases = {}
+    databases[dataset_name] = '/content/'+dataset_name
     #if the dataset_info is list of tuple, then it will be combined before splitting by the function
     #getDataloadersDic(). Good!!
     if not isinstance(data_C, list):#
