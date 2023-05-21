@@ -221,9 +221,9 @@ class GenSeg_IncludeX_NoCombining(nn.Module):
 class GenSeg_IncludeAugX_hue_avgV2(nn.Module):
     #It is similar to GenSeg_IncludeX_max class, in which the segmentor trained on generated
     #image as if it is original images, meanwhile, the val and test average is applied
-    def __init__(self, Gen_Seg_arch=('unet','unet'),transfer_learning=False):
+    def __init__(self, Gen_Seg_arch=('unet','unet'),transfer_learning=False, hue=0.05):
         super().__init__()
-        aug= torchvision.transforms.ColorJitter(hue=0.05)
+        aug= torchvision.transforms.ColorJitter(hue=hue)
         self.baseGenSeg_model = GenSeg_IncludeX(Gen_Seg_arch, augmentation=aug,transfer_learning=transfer_learning)
 
     def forward(self,X, phase, truth_masks):

@@ -101,6 +101,8 @@ def getModel(model_name):
     elif model_name.find('IncludeAugX')>=0:
             if model_name.find('hue_avgV2')>=0:
                 model = GenSeg_IncludeAugX_hue_avgV2(Gen_Seg_arch,transfer_learning=pretrained)
+            elif model_name.find('ident_avgV2')>=0:
+                model = GenSeg_IncludeAugX_hue_avgV2(Gen_Seg_arch,transfer_learning=pretrained, hue=0)
             elif model_name.find('gray_avgV2')>=0:
                 model = GenSeg_IncludeAugX_gray_avgV2(Gen_Seg_arch)
     elif model_name.find('Vanilla') >= 0:
