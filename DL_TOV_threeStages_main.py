@@ -255,7 +255,7 @@ if __name__ == '__main__':
     # GenSeg_IncludeX_Conventional_hue_unet, GenSeg_IncludeX_Conventional_brightness_unet]
     ################### Vanilla models (i.e., no generator and no augmentation) #######################
     #                 Transfere Learning for vanilla models are added except for Unet
-    #['GenSeg_Vanilla_none_unet', GenSeg_Vanilla_none_fcn, GenSeg_Vanilla_none_deeplab]
+    #['GenSeg_Vanilla_none_unet', GenSeg_Vanilla_none_fcn, GenSeg_Vanilla_none_deeplab, GenSeg_Vanilla_none_lraspp]
     #[GenSeg_Vanilla_TL_fcn, GenSeg_Vanilla_TL_deeplab, GenSeg_Vanilla_TL_lraspp]
     model_name = "GenSeg_IncludeAugX_hue_avgV2_TL_unet_lraspp"
     model = getModel(model_name)
@@ -267,7 +267,7 @@ if __name__ == '__main__':
 
     # experimentDatasets = (CVC_EndoSceneStill (train/val/test), CVC_ClinicDB,Kvasir-SEG,
     # CVC_ClinicDB_Brightness20, CVC_ClinicDB_flipping, CVC_ClinicDB_withoutTest, CVC_ClinicDB_KvasirOrigTest )
-    experimentDatasets = 'CVC_ClinicDB_flipping'
+    experimentDatasets = 'CVC_ClinicDB_KvasirOrigTest'
 
     # Start WandB recording
     initializWandb()
