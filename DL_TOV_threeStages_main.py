@@ -116,8 +116,8 @@ def get_Dataloaders_dic(experimentDatasets):
     '''for now let us make it simple and fixed. Later we would use Yaml config to design dataset.
     for now the experiments as follows:
     1- Train/val/test: EndoSceneStill
-    2- Train/val: CVC-clinicDB, test:Kvasir
-    3- Train/val: Kvasir, test: CVC-clinicDB
+    2- Train/val: CVC_ClinicDB, test:Kvasir
+    3- Train/val: Kvasir, test: CVC_ClinicDB
     '''
     Dataloaders_dic = {}
     if experimentDatasets==None:
@@ -149,6 +149,19 @@ def get_Dataloaders_dic(experimentDatasets):
                                                         batch_size=batch_size)
         Dataloaders_dic['test5'] = getLoadersBySetName('Kvasir-SEG', 'data_C5', target_img_size, train_val_ratio=0,
                                                         batch_size=batch_size)
+    elif  experimentDatasets=='CVC_ClinicDB_withoutTest':
+        # CVC train/val, Kvasir Test
+        train_val_ratio = 0.7
+        dataloasers = getLoadersBySetName('CVC_ClinicDB', 'data_C1',target_img_size, train_val_ratio=train_val_ratio,
+                                          shuffle=shuffle, batch_size=batch_size)
+        Dataloaders_dic['train'], Dataloaders_dic['val'] = dataloasers
+    elif experimentDatasets == 'CVC_ClinicDB_KvasirOrigTest':
+        train_val_ratio = 0.7
+        dataloasers = getLoadersBySetName('CVC_ClinicDB', 'data_C1', target_img_size, train_val_ratio=train_val_ratio,
+                                          shuffle=shuffle, batch_size=batch_size)
+        Dataloaders_dic['train'], Dataloaders_dic['val'] = dataloasers
+        Dataloaders_dic['test1'] = getLoadersBySetName('Kvasir_SEG_original', 'data_C1', target_img_size, train_val_ratio=0,
+                                                       batch_size=batch_size)
     elif experimentDatasets in ['CVC_ClinicDB_Brightness','CVC_ClinicDB_Brightness20'
                                 ,'CVC_ClinicDB_flipping','CVC_ClinicDB_rotate'
                                 ,'CVC_ClinicDB_shear']:
@@ -201,7 +214,7 @@ if __name__ == '__main__':
     maskDir = 'mask_C1'
     colab_dir = "."
     if run_in_colab:
-        root_dir = "/content/CVC-ClinicDB"
+        root_dir = "/content/CVC_ClinicDB"
         colab_dir = "/content/denoising-using-deeplearning"
     num_epochs = 300
     batch_size = 7
@@ -253,7 +266,7 @@ if __name__ == '__main__':
         lamda = {"l2": 0, "grad": 0}
 
     # experimentDatasets = (CVC_EndoSceneStill (train/val/test), CVC_ClinicDB,Kvasir-SEG,
-    # CVC_ClinicDB_Brightness20, CVC_ClinicDB_flipping )
+    # CVC_ClinicDB_Brightness20, CVC_ClinicDB_flipping, CVC_ClinicDB_withoutTest, CVC_ClinicDB_KvasirOrigTest )
     experimentDatasets = 'CVC_ClinicDB_flipping'
 
     # Start WandB recording
