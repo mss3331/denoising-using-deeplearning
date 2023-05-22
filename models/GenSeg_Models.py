@@ -11,7 +11,9 @@ from models import MyModelV1, FCNModels, DeepLabModels, unet
 def getModel(model_name='unet',pretrianed=False, in_channels=3, out_channels=2,):
     if not isinstance(model_name,str):
         return model_name #it means that model_name=torchvision.transforms.Augmentation or nn.Identity or something else
-    if model_name=='deeplab':
+    if model_name=='ident':
+        model = nn.Identity()
+    elif model_name=='deeplab':
         model = DeepLabModels.Deeplabv3(num_classes=out_channels, pretrianed=pretrianed)
     elif model_name == 'fcn':
         model = FCNModels.FCN(num_classes=out_channels, pretrianed=pretrianed)
@@ -46,8 +48,11 @@ class GenSeg_IncludeX(nn.Module):
         super().__init__()
         base = getModel(Gen_Seg_arch[0],out_channels=3,pretrianed=transfer_learning)
         self.augmentation = augmentation
-        if isinstance(Gen_Seg_arch[0], str):  # it means Gen_Seg_arch[0]='unet' or 'deeplab' ... etc
-            self.Generator = nn.Sequential(base, nn.Sigmoid())
+        if isinstance(Gen_Seg_arch[0], str):  # it means Gen_Seg_arch[0]='unet', 'deeplab', 'ident' ... etc
+            if Gen_Seg_arch[0]=='ident':
+                self.Generator = base # the base in this case is just nn.Identity()
+            else:
+                self.Generator = nn.Sequential(base, nn.Sigmoid())
         else:  # it means Gen_Seg_arch[0]=torchvision.transforms.GaussianBlur (i.e., Conventional Aug)
             self.Generator = base
         self.Segmentor = getModel(Gen_Seg_arch[1])

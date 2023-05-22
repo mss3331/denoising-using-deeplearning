@@ -101,8 +101,12 @@ def getModel(model_name):
     elif model_name.find('IncludeAugX')>=0:
             if model_name.find('hue_avgV2')>=0:
                 model = GenSeg_IncludeAugX_hue_avgV2(Gen_Seg_arch,transfer_learning=pretrained)
+            ############# Ablation options ############################################
             elif model_name.find('ident_avgV2')>=0:
                 model = GenSeg_IncludeAugX_hue_avgV2(Gen_Seg_arch,transfer_learning=pretrained, hue=0)
+            elif model_name.find('hue_avgV2_TL_ident') >=0 or model_name.find('hue_avgV2_ident') >=0:
+                model = GenSeg_IncludeAugX_hue_avgV2(Gen_Seg_arch,transfer_learning=pretrained)
+            ######################################################################
             elif model_name.find('gray_avgV2')>=0:
                 model = GenSeg_IncludeAugX_gray_avgV2(Gen_Seg_arch)
     elif model_name.find('Vanilla') >= 0:
@@ -247,7 +251,10 @@ if __name__ == '__main__':
     # GenSeg_IncludeX_convV2_unet_unet, GenSeg_IncludeX_ColorJitterGenerator_avgV2_unet_unet,
     # GenSeg_IncludeX_ColorJitterGeneratorTrainOnly_avgV2_unet_unet,
     # GenSeg_IncludeAugX_hue_avgV2_unet_unet, GenSeg_IncludeAugX_gray_avgV2_unet_unet,
-    # GenSeg_IncludeAugX_hue_avgV2_TL_unet_fcn]
+    # GenSeg_IncludeAugX_hue_avgV2_TL_unet_fcn, GenSeg_IncludeAugX_hue_avgV2_TL_unet_lraspp]
+    #                        Ablation
+    # GenSeg_IncludeAugX_ident_avgV2_TL_unet_lraspp, GenSeg_IncludeAugX_ident_avgV2_unet_lraspp
+    # GenSeg_IncludeAugX_hue_avgV2_TL_ident_lraspp, GenSeg_IncludeAugX_hue_avgV2_ident_lraspp]
     #
     #################### Conventional Segmentor models (i.e., online augmentation) with avgV2
     # [GenSeg_IncludeX_Conventional_avgV2_blure_unet, GenSeg_IncludeX_Conventional_avgV2_colorjitter_unet
@@ -259,7 +266,7 @@ if __name__ == '__main__':
     #                 Transfere Learning for vanilla models are added except for Unet
     #['GenSeg_Vanilla_none_unet', GenSeg_Vanilla_none_fcn, GenSeg_Vanilla_none_deeplab, GenSeg_Vanilla_none_lraspp]
     #[GenSeg_Vanilla_TL_fcn, GenSeg_Vanilla_TL_deeplab, GenSeg_Vanilla_TL_lraspp]
-    model_name = "GenSeg_IncludeAugX_hue_avgV2_TL_unet_lraspp"
+    model_name = "GenSeg_IncludeAugX_hue_avgV2_TL_ident_lraspp"
     model = getModel(model_name)
     if model_name.find('GenSeg')>=0:
         switch_epoch=[-1,-1]
