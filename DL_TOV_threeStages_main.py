@@ -141,7 +141,7 @@ def get_Dataloaders_dic(experimentDatasets):
                                                        batch_size=batch_size, shuffle=shuffle)
     elif experimentDatasets=='CVC_ClinicDB':
         # CVC train/val, Kvasir Test
-        train_val_ratio = 0.8
+        train_val_ratio = 0.7
         dataloasers = getLoadersBySetName('CVC_ClinicDB', 'data_C1',target_img_size, train_val_ratio=train_val_ratio,
                                           shuffle=shuffle, batch_size=batch_size)
         Dataloaders_dic['train'], Dataloaders_dic['val'] = dataloasers
@@ -168,11 +168,25 @@ def get_Dataloaders_dic(experimentDatasets):
         Dataloaders_dic['train'], Dataloaders_dic['val'] = dataloasers
         Dataloaders_dic['test1'] = getLoadersBySetName('Kvasir_SEG_original', 'data_C1', target_img_size, train_val_ratio=0,
                                                        batch_size=batch_size)
+    elif experimentDatasets == 'CVC_ClinicDB_KvasirOrigEndoLaribTest':
+        train_val_ratio = 0.7
+        dataloasers = getLoadersBySetName('CVC_ClinicDB', 'data_C1', target_img_size, train_val_ratio=train_val_ratio,
+                                          shuffle=shuffle, batch_size=batch_size)
+        Dataloaders_dic['train'], Dataloaders_dic['val'] = dataloasers
+        Dataloaders_dic['test1'] = getLoadersBySetName('Kvasir_SEG_original', 'data_C1', target_img_size,
+                                                       train_val_ratio=0,
+                                                       batch_size=batch_size)
+        Dataloaders_dic['test2'] = getLoadersBySetName('CVC_EndoSceneStill', ['data_C1', 'data_C2', 'data_C3'],
+                                                       target_img_size, train_val_ratio=0,
+                                                       batch_size=batch_size)
+        Dataloaders_dic['test3'] = getLoadersBySetName('ETIS_LaribPolypDB', 'data_C1', target_img_size,
+                                                       train_val_ratio=0,
+                                                       batch_size=batch_size)
     elif experimentDatasets in ['CVC_ClinicDB_Brightness','CVC_ClinicDB_Brightness20'
                                 ,'CVC_ClinicDB_flipping','CVC_ClinicDB_rotate'
                                 ,'CVC_ClinicDB_shear']:
         # CVC train/val, Kvasir Test
-        # train_val_ratio = 0.8
+        # train_val_ratio = 0.7
         # dataloasers = getLoadersBySetName('CVC_ClinicDB', 'data_C1',target_img_size, train_val_ratio=train_val_ratio,
         #                                   shuffle=shuffle, batch_size=batch_size)
         # Dataloaders_dic['train'], Dataloaders_dic['val'] = dataloasers
@@ -266,7 +280,7 @@ if __name__ == '__main__':
     #                 Transfere Learning for vanilla models are added except for Unet
     #['GenSeg_Vanilla_none_unet', GenSeg_Vanilla_none_fcn, GenSeg_Vanilla_none_deeplab, GenSeg_Vanilla_none_lraspp]
     #[GenSeg_Vanilla_TL_fcn, GenSeg_Vanilla_TL_deeplab, GenSeg_Vanilla_TL_lraspp]
-    model_name = "GenSeg_IncludeAugX_hue_avgV2_TL_ident_lraspp"
+    model_name = "GenSeg_IncludeAugX_hue_avgV2_TL_unet_lraspp"
     model = getModel(model_name)
     if model_name.find('GenSeg')>=0:
         switch_epoch=[-1,-1]
@@ -276,7 +290,8 @@ if __name__ == '__main__':
 
     # experimentDatasets = (CVC_EndoSceneStill (train/val/test), CVC_ClinicDB,Kvasir-SEG,
     # CVC_ClinicDB_Brightness20, CVC_ClinicDB_flipping, CVC_ClinicDB_withoutTest, CVC_ClinicDB_KvasirOrigTest )
-    experimentDatasets = 'CVC_ClinicDB_KvasirOrigTest'
+    # CVC_ClinicDB_KvasirOrigEndoLaribTest
+    experimentDatasets = 'CVC_ClinicDB_KvasirOrigEndoLaribTest'
 
     # Start WandB recording
     initializWandb()
