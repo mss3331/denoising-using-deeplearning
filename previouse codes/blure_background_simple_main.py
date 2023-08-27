@@ -11,9 +11,9 @@ from MyDataloaders import *
 from Metrics import *
 from models import MyModelV1, FCNModels, DeepLabModels, unet
 import torch
-from MyDataloaders_denoising import getDataloadersDic
+from MyDataloaders_denoising import blure_background_getDataloadersDic
 from torch import nn
-from Training import training_loop
+from Training import blure_background_training_loop
 from torchvision import datasets
 from torch.utils.data import ConcatDataset
 from torch.utils.data import DataLoader
@@ -36,7 +36,7 @@ if __name__ == '__main__':
     child_dir = "data_C1"
     imageDir = 'images_C1'
     maskDir = 'mask_C1'
-    colab_dir = "."
+    colab_dir = ".."
     if run_in_colab:
         root_dir = "/content/CVC-ClinicDB"
         colab_dir = "/content/denoising-using-deeplearning"
@@ -81,11 +81,11 @@ if __name__ == '__main__':
     dataset_info = [(root_dir, child_dir, imageDir, maskDir, target_img_size)]#,
                     #("/content/trainData_EndoCV2021_5_Feb2021","data_C2","images_C2","mask_C2",target_img_size)]
     dataloder_info = (train_val_ratio,batch_size, shuffle)
-    Dataloaders_dic = getDataloadersDic(dataset_info, dataloder_info)
+    Dataloaders_dic = blure_background_getDataloadersDic(dataset_info, dataloder_info)
 
     dataset_info = ("/content/trainData_EndoCV2021_5_Feb2021", child_dir, imageDir, maskDir, target_img_size)
     dataloder_info = (0.01,batch_size, shuffle)
-    Dataloaders_test_dic = getDataloadersDic(dataset_info, dataloder_info)
+    Dataloaders_test_dic = blure_background_getDataloadersDic(dataset_info, dataloder_info)
     Dataloaders_dic['test']=Dataloaders_test_dic['val']
     # print(trainDataset[1])
     # exit(0)
@@ -121,7 +121,7 @@ if __name__ == '__main__':
     wandb.init(
         project=wandbproject_name,
         entity="mss3331",
-        name="Denoising_EndoCV_testing_MaskedGradLoss",
+        name="Denoising_EndoCV_bluringX_Exp1",
         # Track hyperparameters and run metadata
         config={
             "learning_rate": learning_rate,
@@ -132,11 +132,9 @@ if __name__ == '__main__':
             "num_epochs": num_epochs,
             "dataset": root_dir.split("/")[-1], })
     Dataloaders_dic.pop('test')
-
-    training_loop(num_epochs, optimizer, lamda, model, loss_fn,
+    blure_background_training_loop(num_epochs, optimizer, lamda, model, loss_fn,
                   Dataloaders_dic,
-                  device)
-
+                  device, num_epochs)
     wandb.save(colab_dir + '/*.py')
     wandb.save(colab_dir + '/results/*')
     wandb.save(colab_dir + '/models/*')

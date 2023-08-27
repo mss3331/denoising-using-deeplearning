@@ -409,7 +409,7 @@ if __name__=='__main__':
     number_classes = 2 # output channels should be one mask for binary class
 
     root_dir = r"E:\Databases\EndoCV21\trainData_EndoCV2021_5_Feb2021"
-    colab_dir = "."
+    colab_dir = ".."
     if run_in_colab:
         root_dir = r"/content/trainData_EndoCV2021_5_Feb2021"
         colab_dir = "/content/GIANA21/"
