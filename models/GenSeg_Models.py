@@ -29,7 +29,7 @@ def getModel(model_name='unet',pretrianed=False, in_channels=3, out_channels=2,)
               dim=2)
     elif model_name == 'MSNet':
         model = MSNet_M2SNet.MSNet(pretrained=pretrianed)
-    elif model_name == 'MSNet':
+    elif model_name == 'M2SNet':
         model = MSNet_M2SNet.M2SNet(pretrained=pretrianed)
     else:
         print('unknnown model for the Gen Seg models')
