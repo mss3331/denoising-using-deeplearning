@@ -1,6 +1,6 @@
 import torch, torchvision
 from torch import nn
-from models import MyModelV1, FCNModels, DeepLabModels, unet
+from models import MyModelV1, FCNModels, DeepLabModels, unet, MSNet_M2SNet
 
 '''This model should handle the following:
 1- Load pretrained models
@@ -27,6 +27,10 @@ def getModel(model_name='unet',pretrianed=False, in_channels=3, out_channels=2,)
               normalization='batch',
               conv_mode='same',
               dim=2)
+    elif model_name == 'MSNet':
+        model = MSNet_M2SNet.MSNet(pretrained=pretrianed)
+    elif model_name == 'MSNet':
+        model = MSNet_M2SNet.M2SNet(pretrained=pretrianed)
     else:
         print('unknnown model for the Gen Seg models')
         exit(-1)

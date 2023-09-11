@@ -280,6 +280,8 @@ if __name__ == '__main__':
     #                 Transfere Learning for vanilla models are added except for Unet
     #['GenSeg_Vanilla_none_unet', GenSeg_Vanilla_none_fcn, GenSeg_Vanilla_none_deeplab, GenSeg_Vanilla_none_lraspp]
     #[GenSeg_Vanilla_TL_fcn, GenSeg_Vanilla_TL_deeplab, GenSeg_Vanilla_TL_lraspp]
+    ###################  Polyp Segmentation Models ################################
+    #[GenSeg_Vanilla_none_MSNet, GenSeg_Vanilla_TL_MSNet, GenSeg_Vanilla_none_M2SNet, GenSeg_Vanilla_TL_M2SNet]
     model_name = "GenSeg_IncludeAugX_hue_avgV2_TL_unet_lraspp"
     model = getModel(model_name)
     if model_name.find('GenSeg')>=0:
