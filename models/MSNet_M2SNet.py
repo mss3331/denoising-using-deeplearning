@@ -74,7 +74,7 @@ class MSNet(nn.Module):
                                      nn.ReLU(inplace=True))
         self.output2 = nn.Sequential(nn.Conv2d(64, 64, kernel_size=3, padding=1), nn.BatchNorm2d(64),
                                      nn.ReLU(inplace=True))
-        self.output1 = nn.Sequential(nn.Conv2d(64, 1, kernel_size=3, padding=1))
+        self.output1 = nn.Sequential(nn.Conv2d(64, 2, kernel_size=3, padding=1))
 
     def forward(self, x):
         input = x
@@ -185,7 +185,7 @@ class M2SNet(nn.Module):
                                      nn.ReLU(inplace=True))
         self.output2 = nn.Sequential(nn.Conv2d(64, 64, kernel_size=3, padding=1), nn.BatchNorm2d(64),
                                      nn.ReLU(inplace=True))
-        self.output1 = nn.Sequential(nn.Conv2d(64, 1, kernel_size=3, padding=1))
+        self.output1 = nn.Sequential(nn.Conv2d(64, 2, kernel_size=3, padding=1))
 
     def forward(self, x):
         input = x
@@ -338,7 +338,7 @@ class LossNet(torch.nn.Module):
 
 
 if __name__ == '__main__':
-    ras = M2SNet(False).cuda()
+    ras = MSNet(False).cuda()
     input_tensor = torch.randn(1, 3, 255, 300).cuda()
     out = ras(input_tensor)
     print(out.shape)
