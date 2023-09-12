@@ -4,6 +4,7 @@ import numpy as np
 from tqdm import tqdm
 from torch import nn
 from pprint import pprint
+import torch.nn.functional as F
 import pandas
 from torchvision import transforms
 from MedAI_code_segmentation_evaluation import IOU_class01, calculate_metrics_torch
@@ -530,6 +531,43 @@ def three_stages_training_loop(num_epochs, optimizer, lamda, model, loss_dic, da
                        'best_val_iou':best_val_iou ,phase+"_epoch": epoch},
                       step=epoch)
 
+# This function is specifically created to handle extra outputs from polyp segmentation such as PraNet ...etc
+def handleSpecialOutputs(model_name, generated_masks, target_shape):
+    special_outputs = None
+    if model_name=='PraNet':
+        PraNet_lateral_maps = generated_masks
+        special_outputs = PraNet_lateral_maps
+        generated_masks = PraNet_lateral_maps[-1]
+        generated_masks = F.upsample(generated_masks, size=target_shape, mode='bilinear', align_corners=False)
+        # make the first channel for background and the second channel for polyp to follow our convenction class0: background
+        generated_masks = torch.cat((generated_masks * -1, generated_masks), dim=1)
+    else:
+        print('There is no special model to treat it differently, current model name=',model_name)
+        exit(0)
+    return generated_masks, special_outputs
+
+def structure_loss(pred, mask):
+    weit = 1 + 5*torch.abs(F.avg_pool2d(mask, kernel_size=31, stride=1, padding=15) - mask)
+    wbce = F.binary_cross_entropy_with_logits(pred, mask, reduce='none')
+    wbce = (weit*wbce).sum(dim=(2, 3)) / weit.sum(dim=(2, 3))
+
+    pred = torch.sigmoid(pred)
+    inter = ((pred * mask)*weit).sum(dim=(2, 3))
+    union = ((pred + mask)*weit).sum(dim=(2, 3))
+    wiou = 1 - (inter + 1)/(union - inter+1)
+    return (wbce + wiou).mean()
+
+def specializedLoss(actual_model_name, special_outputs, gts):
+    loss = None
+    if actual_model_name=='PraNet':
+        loss5 = structure_loss(special_outputs[0], gts)
+        loss4 = structure_loss(special_outputs[1], gts)
+        loss3 = structure_loss(special_outputs[2], gts)
+        loss2 = structure_loss(special_outputs[3], gts)
+        loss = loss2 + loss3 + loss4 + loss5
+    return loss
+
+
 def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loader_dic,
                          device,switch_epoch,colab_dir,
                          model_name,inference=False):
@@ -541,6 +579,8 @@ def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loa
     # this number is created according to the best gen loss at
     # Denoising_trainCVC_testKvasir_Exp4_IncludeAugX_hue_avgV2_unet_Lraspp
     # best_val_generator_loss=0.005
+    special_models_names = ['PraNet']
+    actual_model_name = model_name.split('_')[-1]
     best_val_generator_loss=1000
     for epoch in range(0, num_epochs + 1):
 
@@ -574,6 +614,7 @@ def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loa
             all_pred_maskes_torch = []
 
             pbar = tqdm(data_loader_dic[phase], total=len(data_loader_dic[phase]))
+            #intermediate is just a mask with one channel only as opposed to original_masks
             for X, intermediate, original_masks in pbar:
                 batch_size = len(X)
                 total_train_images += batch_size
@@ -588,6 +629,12 @@ def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loa
                     if model_name.find('GenSeg') >= 0:
                         results = model(X, phase, original_masks)
                         generated_images, generated_masks, original_masks = results
+
+                        #################### Handling special models that have more than one output ##################
+                        #PraNet generates 5 outputs masks instead of 1. Only the last one is considered for val
+                        if actual_model_name in special_models_names:
+                            generated_masks, special_outputs = handleSpecialOutputs(actual_model_name, generated_masks, original_masks.shape)
+
                     else:  # the old version code i.e., other than GenSeg_IncludeX models
                         generated_images = model[0](X)
                         generated_X = generated_images.clone().detach()
@@ -617,7 +664,12 @@ def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loa
                             loss = loss_grad * lamda['grad'] + loss_l2
                         if epoch >= switch_epoch[1]:  # move to stage 3 loss: ‖f-g * mask(polyp)‖^2 + ‖∇g *mask(1-polyp)‖^2 + BCEWithLoggits
                             bce = loss_dic['segmentor']
-                            loss_mask = bce(generated_masks, original_masks)
+
+                            #specialized loss for some SOTA polyp segmentation models such as PraNet
+                            if actual_model_name in special_models_names:
+                                loss_mask = specializedLoss(actual_model_name, special_outputs, intermediate)
+                            else:#this is our default loss
+                                loss_mask = bce(generated_masks, original_masks)
                             loss = loss_grad * lamda['grad'] + loss_l2 * lamda['l2'] + loss_mask
 
                             # iou = IOU_class01(original_masks, generated_masks)
