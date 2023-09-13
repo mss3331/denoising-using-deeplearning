@@ -305,9 +305,9 @@ if __name__ == '__main__':
     print("epochs {} batch size {}".format(num_epochs, batch_size))
 
     # Change target image size if PraNet is used. It gives error during upsampling otherwise
-    if model_name.lower().find('pranet'):
+    if model_name.lower().find('pranet')>=0:
         target_img_size = (352, 352)
-    elif model_name.lower().find('acsnet'):
+    elif model_name.lower().find('acsnet')>=0:
         target_img_size = (224, 224)
 
     print("resize_factor={} and image size={}".format(resize_factor, target_img_size))
