@@ -1,6 +1,6 @@
 import torch, torchvision
 from torch import nn
-from models import MyModelV1, FCNModels, DeepLabModels, unet, MSNet_M2SNet, PraNet_Res2Net
+from models import MyModelV1, FCNModels, DeepLabModels, unet, MSNet_M2SNet, PraNet_Res2Net, ACSNet
 
 '''This model should handle the following:
 1- Load pretrained models
@@ -33,6 +33,8 @@ def getModel(model_name='unet',pretrianed=False, in_channels=3, out_channels=2,)
         model = MSNet_M2SNet.M2SNet(pretrained=pretrianed)
     elif model_name == 'PraNet':
         model = PraNet_Res2Net.PraNet(pretrained=pretrianed)
+    elif model_name == 'ACSNet':
+        model = ACSNet.ACSNet(pretrained=pretrianed)
     else:
         print('unknnown model for the Gen Seg models')
         exit(-1)

@@ -249,7 +249,7 @@ if __name__ == '__main__':
 
 
 
-    print("resize_factor={} and image size={}".format(resize_factor, target_img_size))
+    # print("resize_factor={} and image size={}".format(resize_factor, target_img_size))
     # ************** modify for full experiment *************
     # [SegNet, SegNetGRU, SegNetGRU_Symmetric, SegNetGRU_Symmetric_columns,
     # SegNetGRU_Symmetric_columns_shared_EncDec, SegNetGRU_Symmetric_columns_UltimateShare,
@@ -282,9 +282,11 @@ if __name__ == '__main__':
     #['GenSeg_Vanilla_none_unet', GenSeg_Vanilla_none_fcn, GenSeg_Vanilla_none_deeplab, GenSeg_Vanilla_none_lraspp]
     #[GenSeg_Vanilla_TL_fcn, GenSeg_Vanilla_TL_deeplab, GenSeg_Vanilla_TL_lraspp]
     ###################  Polyp Segmentation Models ################################
-    #[GenSeg_Vanilla_none_MSNet, GenSeg_Vanilla_none_M2SNet, GenSeg_Vanilla_none_PraNet
-    # GenSeg_Vanilla_TL_MSNet, GenSeg_Vanilla_TL_M2SNet, GenSeg_Vanilla_TL_PraNet]
-    model_name = "GenSeg_Vanilla_TL_PraNet"
+    #[GenSeg_Vanilla_none_MSNet, GenSeg_Vanilla_none_M2SNet, GenSeg_Vanilla_none_PraNet,
+    # GenSeg_Vanilla_none_ACSNet]
+    # [GenSeg_Vanilla_TL_MSNet, GenSeg_Vanilla_TL_M2SNet, GenSeg_Vanilla_TL_PraNet,
+    # GenSeg_Vanilla_TL_ACSNet]
+    model_name = "GenSeg_Vanilla_TL_ACSNet"
     model = getModel(model_name)
     if model_name.find('GenSeg')>=0:
         switch_epoch=[-1,-1]
@@ -305,7 +307,10 @@ if __name__ == '__main__':
     # Change target image size if PraNet is used. It gives error during upsampling otherwise
     if model_name.lower().find('pranet'):
         target_img_size = (352, 352)
-        print("resize_factor={} and image size={}".format(resize_factor, target_img_size))
+    elif model_name.lower().find('acsnet'):
+        target_img_size = (224, 224)
+
+    print("resize_factor={} and image size={}".format(resize_factor, target_img_size))
 
 ############## This is an old code to create train/val/test
     # dataset_info = [(root_dir, child_dir, imageDir, maskDir, target_img_size)]#,
