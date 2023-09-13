@@ -283,10 +283,10 @@ if __name__ == '__main__':
     #[GenSeg_Vanilla_TL_fcn, GenSeg_Vanilla_TL_deeplab, GenSeg_Vanilla_TL_lraspp]
     ###################  Polyp Segmentation Models ################################
     #[GenSeg_Vanilla_none_MSNet, GenSeg_Vanilla_none_M2SNet, GenSeg_Vanilla_none_PraNet,
-    # GenSeg_Vanilla_none_ACSNet]
+    # GenSeg_Vanilla_none_ACSNet, GenSeg_Vanilla_none_CaraNet]
     # [GenSeg_Vanilla_TL_MSNet, GenSeg_Vanilla_TL_M2SNet, GenSeg_Vanilla_TL_PraNet,
-    # GenSeg_Vanilla_TL_ACSNet]
-    model_name = "GenSeg_Vanilla_TL_ACSNet"
+    # GenSeg_Vanilla_TL_ACSNet, GenSeg_Vanilla_TL_CaraNet]
+    model_name = "GenSeg_Vanilla_TL_CaraNet"
     model = getModel(model_name)
     if model_name.find('GenSeg')>=0:
         switch_epoch=[-1,-1]
@@ -306,6 +306,8 @@ if __name__ == '__main__':
 
     # Change target image size if PraNet is used. It gives error during upsampling otherwise
     if model_name.lower().find('pranet')>=0:
+        target_img_size = (352, 352)
+    elif model_name.lower().find('caranet')>=0:
         target_img_size = (352, 352)
     elif model_name.lower().find('acsnet')>=0:
         target_img_size = (224, 224)

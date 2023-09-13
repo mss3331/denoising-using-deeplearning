@@ -6,6 +6,7 @@ from torch import nn
 from pprint import pprint
 import models.helpers.ACSNet_loss as ACSNet_loss
 import models.helpers.PraNet_loss as PraNet_loss
+import models.helpers.CaraNet_loss as CaraNet_loss
 import torch.nn.functional as F
 import pandas
 from torchvision import transforms
@@ -548,6 +549,13 @@ def handleSpecialOutputs(model_name, generated_masks, target_shape):
         special_outputs = ACSNet_outputs
         generated_masks = ACSNet_outputs[0] #first one is sigm(out1) 224*224
         generated_masks = torch.cat((1-generated_masks, generated_masks), dim=1)
+    elif model_name=='CaraNet':
+        CaraNet_lateral_maps = generated_masks
+        special_outputs = CaraNet_lateral_maps
+        generated_masks = CaraNet_lateral_maps[0]
+        # generated_masks = F.upsample(generated_masks, size=target_shape, mode='bilinear', align_corners=False)
+        # make the first channel for background and the second channel for polyp to follow our convenction class0: background
+        generated_masks = torch.cat((generated_masks * -1, generated_masks), dim=1)
     else:
         print('There is no special model to treat it differently, current model name=',model_name)
         exit(0)
@@ -560,6 +568,8 @@ def specializedLoss(actual_model_name, special_outputs, gts):
         loss = PraNet_loss.pranet_structure_loss(special_outputs, gts)
     elif actual_model_name == 'ACSNet':
         loss = ACSNet_loss.DeepSupervisionLoss(special_outputs, gts)
+    elif actual_model_name=='CaraNet':
+        loss = CaraNet_loss.CaraNet_structure_loss(special_outputs, gts)
     return loss
 
 
@@ -574,7 +584,7 @@ def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loa
     # this number is created according to the best gen loss at
     # Denoising_trainCVC_testKvasir_Exp4_IncludeAugX_hue_avgV2_unet_Lraspp
     # best_val_generator_loss=0.005
-    special_models_names = ['PraNet','ACSNet']
+    special_models_names = ['PraNet','ACSNet','CaraNet']
     actual_model_name = model_name.split('_')[-1]
     best_val_generator_loss=1000
     for epoch in range(0, num_epochs + 1):
