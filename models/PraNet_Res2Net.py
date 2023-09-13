@@ -180,7 +180,8 @@ class PraNet(nn.Module):
 
 
 if __name__ == '__main__':
-    ras = PraNet().cuda()
+    pretrianed = True
+    ras = PraNet(pretrianed=pretrianed).cuda()
     resize_factor = 0.75
     target_img_size = (int(288 * resize_factor), int(384 * resize_factor))
     input_tensor = torch.randn(1, 3, int(352/1.5), int(350/1.5)).cuda()

@@ -538,7 +538,7 @@ def handleSpecialOutputs(model_name, generated_masks, target_shape):
         PraNet_lateral_maps = generated_masks
         special_outputs = PraNet_lateral_maps
         generated_masks = PraNet_lateral_maps[-1]
-        generated_masks = F.upsample(generated_masks, size=target_shape, mode='bilinear', align_corners=False)
+        # generated_masks = F.upsample(generated_masks, size=target_shape, mode='bilinear', align_corners=False)
         # make the first channel for background and the second channel for polyp to follow our convenction class0: background
         generated_masks = torch.cat((generated_masks * -1, generated_masks), dim=1)
     else:
@@ -633,7 +633,7 @@ def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loa
                         #################### Handling special models that have more than one output ##################
                         #PraNet generates 5 outputs masks instead of 1. Only the last one is considered for val
                         if actual_model_name in special_models_names:
-                            generated_masks, special_outputs = handleSpecialOutputs(actual_model_name, generated_masks, original_masks.shape)
+                            generated_masks, special_outputs = handleSpecialOutputs(actual_model_name, generated_masks, intermediate.shape)
 
                     else:  # the old version code i.e., other than GenSeg_IncludeX models
                         generated_images = model[0](X)
