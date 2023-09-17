@@ -2,7 +2,7 @@ import torch, torchvision
 from torch import nn
 from models import MyModelV1, FCNModels, DeepLabModels, unet,\
     MSNet_M2SNet, PraNet_Res2Net, ACSNet, CaraNet
-
+from models.OnlineAug import augmentation as augmentation_generator
 '''This model should handle the following:
 1- Load pretrained models
 2- Flexibility at selecting the Generator and the Segmentor architectures
@@ -476,11 +476,19 @@ class GenSeg_Vanilla(nn.Module):
     #image as if it is original images, meanwhile, the val and test average is applied
     def __init__(self, Gen_Seg_arch=(None,'unet'), pretrained=False):
         super().__init__()
-        #the Generator here is simply bluring
+        #the Generator here is either none or online augmenation in file OnlineAug.py
+        self.generator = Gen_Seg_arch[0]
         self.model = getModel(Gen_Seg_arch[1], pretrained)
 
     def forward(self,X, phase, truth_masks):
+        if self.generator=='OnlAug' and phase=='train':
+            X_aug,truth_masks_aug = augmentation_generator(X,truth_masks)
+            generated_images = X_aug
+            X = catOrSplit([X, X_aug])
+            truth_masks = catOrSplit([truth_masks, truth_masks_aug])
+        else:
+            generated_images = X
+
         predicted_masks = self.model(X)
-        generated_images = X
 
         return generated_images, predicted_masks, truth_masks

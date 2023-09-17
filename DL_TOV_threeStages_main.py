@@ -286,6 +286,9 @@ if __name__ == '__main__':
     # GenSeg_Vanilla_none_ACSNet, GenSeg_Vanilla_none_CaraNet]
     # [GenSeg_Vanilla_TL_MSNet, GenSeg_Vanilla_TL_M2SNet, GenSeg_Vanilla_TL_PraNet,
     # GenSeg_Vanilla_TL_ACSNet, GenSeg_Vanilla_TL_CaraNet]
+    ###################  Polyp Segmentation Models with Online Augmentation ################################
+    #[GenSeg_Vanilla_TL_OnlAug_MSNet, GenSeg_Vanilla_TL_OnlAug_M2SNet, GenSeg_Vanilla_TL_OnlAug_PraNet,
+    # GenSeg_Vanilla_TL_OnlAug_ACSNet, GenSeg_Vanilla_TL_OnlAug_CaraNet]
     model_name = "GenSeg_Vanilla_TL_CaraNet"
     model = getModel(model_name)
     if model_name.find('GenSeg')>=0:
