@@ -672,7 +672,9 @@ def Dl_TOV_training_loop(num_epochs, optimizer, lamda, model, loss_dic, data_loa
 
                             #specialized loss for some SOTA polyp segmentation models such as PraNet
                             if actual_model_name in special_models_names:
-                                loss_mask = specializedLoss(actual_model_name, special_outputs, intermediate)
+                                # original_masks[:,1,:,:].unsqueeze(1) contains the augmented polyp maks and we selected the polyp
+                                #channel 1, unsqueeze to be image with one channel [14,352,352] ==> [14,1,352,352]
+                                loss_mask = specializedLoss(actual_model_name, special_outputs, original_masks[:,1,:,:].unsqueeze(1))
                             else:#this is our default loss
                                 loss_mask = bce(generated_masks, original_masks)
                             loss = loss_grad * lamda['grad'] + loss_l2 * lamda['l2'] + loss_mask

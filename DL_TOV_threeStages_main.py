@@ -289,7 +289,7 @@ if __name__ == '__main__':
     ###################  Polyp Segmentation Models with Online Augmentation ################################
     #[GenSeg_Vanilla_TL_OnlAug_MSNet, GenSeg_Vanilla_TL_OnlAug_M2SNet, GenSeg_Vanilla_TL_OnlAug_PraNet,
     # GenSeg_Vanilla_TL_OnlAug_ACSNet, GenSeg_Vanilla_TL_OnlAug_CaraNet]
-    model_name = "GenSeg_Vanilla_TL_CaraNet"
+    model_name = "GenSeg_Vanilla_TL_OnlAug_MSNet"
     model = getModel(model_name)
     if model_name.find('GenSeg')>=0:
         switch_epoch=[-1,-1]
