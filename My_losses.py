@@ -27,12 +27,12 @@ def color_gradient(images,reduction='mean',model_name = None):
 
     # images.reshape = [batch*C, 1, H, W]
     if model_name == None:
-        images = images.view(-1, 1, *images_shape[-2:])
+        images = images.reshape(-1, 1, *images_shape[-2:])
     elif model_name.find('hue')>=0 or model_name.find('colorjitter')>=0 or model_name.find('IncludeAugX')>=0:
         # error if view is used with hue Aug (use reshape)
         images = images.reshape(-1, 1, *images_shape[-2:])
     else:
-        images = images.view(-1, 1, *images_shape[-2:])
+        images = images.reshape(-1, 1, *images_shape[-2:])
 
 
     G_x = conv1(images)
